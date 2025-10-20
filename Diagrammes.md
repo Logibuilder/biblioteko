@@ -1,8 +1,6 @@
 ## diagrammes de classes
 
 ### Identification des classes
-# Diagramme de classes – Bibliothèque numérique décentralisée
-# Generalization Diagram – Users of the Digital Library
 
 ```mermaid
 classDiagram
