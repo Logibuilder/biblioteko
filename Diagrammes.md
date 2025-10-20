@@ -36,19 +36,12 @@ User <|-- Librarian
 
 # Diagramme de classes – Bibliothèque numérique décentralisée
 
-```mermaid
-classDiagram
 
 %% ======================
 %% CLASSES PRINCIPALES
 %% ======================
 
-class User {
-    +id: int
-    +username: String
-    +email: String
-    +role: Role
-}
+
 %% représente un utilisateur de la plateforme, pouvant être lecteur, contributeur ou modérateur.
 
 class Work {
