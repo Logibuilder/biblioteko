@@ -1,0 +1,35 @@
+---
+title: "Diagrammes de classes Bibliothèque"
+output: html_document
+---
+
+## Diagramme 1 : User / Member / Librarian
+```{mermaid}
+classDiagram
+class User {
+    +id: int
+    +username: String
+    +email: String
+    +password: String
+    +role: Role
+}
+%% Base class for all users
+
+class Member {
+    +encryptionKey: String
+    +borrowHistory(): List<BorrowRecord>
+    +submitWork()
+    +borrowWork()
+}
+%% Registered user who can submit and borrow works
+
+class Librarian {
+    +moderationRights: bool
+    +moderateWork()
+    +enrichMetadata()
+    +validateWork()
+}
+%% Member with additional privileges
+
+User <|-- Member
+Member <|-- Librarian
