@@ -31,7 +31,8 @@ class Librarian {
 }
 %% Represents a member with additional privileges for moderation and work management.
 
-
+User <|-- Member
+User <|-- Librarian
 
 
 User 
@@ -213,8 +214,7 @@ class WorkStatus {
 %% RELATIONS
 %% ======================
 
-User <|-- Member
-User <|-- Librarian
+
 
 User "1" --> "*" BorrowRecord
 User "1" --> "*" Work
