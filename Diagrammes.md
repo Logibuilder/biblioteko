@@ -34,6 +34,8 @@ User <|-- Librarian
 
 
 
+# Diagramme de classes – Bibliothèque numérique décentralisée
+
 ```mermaid
 classDiagram
 
@@ -179,8 +181,6 @@ class WorkStatus {
 %% ======================
 %% RELATIONS
 %% ======================
-
-
 
 User "1" --> "*" BorrowRecord
 User "1" --> "*" Work
