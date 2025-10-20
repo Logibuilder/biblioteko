@@ -19,7 +19,8 @@
 7. L'application déplace l'œuvre chiffrée vers le répertoire "emprunts"
 8. Le système enregistre la transaction avec date de début et date d'expiration (14 jours)
 9. L'application notifie le membre du succès de l'opération(message affiché) 
-10. Le membre peut accéder à l'œuvre chiffrée depuis son espace personnel pendant la durée de location
+10. Le membre peut accéder à  chiffrée depuis son espace personnel pendant la durée de location
+11. Le systeme retire l'œuvre remet l'œuvre dans le sequestre après la durée de la location.
 
 **États d'une location** :
 - Disponible → En cours de location → Active → Expirée
@@ -34,5 +35,4 @@
 - Page de catalogue des œuvres
 - Modal de confirmation de location
 - Page "Mes locations" avec compte à rebours
-- Fichier chiffré dans le répertoire "emprunts"
 - Métadonnées : date début, date fin, identifiant œuvre, identifiant membre
