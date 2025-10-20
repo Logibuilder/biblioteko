@@ -35,39 +35,7 @@ User <|-- Member
 User <|-- Librarian
 
 
-User 
 
-Work
-
-WorkVersion
-
-Metadata
-
-ModerationTicket
-
-ModerationNote
-
-BorrowRecord
-
-StorageService (interface)
-
-IPFSAdapter (impl StorageService)
-
-GitRepositoryAdapter
-
-WorkService
-
-ModerationService
-
-OCRService
-
-AuthController
-
-WorkController
-
-Role (enum)
-
-WorkStatus (enum)
 ```mermaid
 classDiagram
 
