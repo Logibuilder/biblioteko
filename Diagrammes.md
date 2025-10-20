@@ -2,7 +2,71 @@
 
 ### Identification des classes
 # Diagramme de classes – Bibliothèque numérique décentralisée
+# Generalization Diagram – Users of the Digital Library
 
+```mermaid
+classDiagram
+class User {
+    +id: int
+    +username: String
+    +email: String
+    +password: String
+    +role: Role
+}
+%% Represents any user of the system (base class).
+
+class Member {
+    +encryptionKey: String
+    +borrowHistory(): List<BorrowRecord>
+    +submitWork()
+    +borrowWork()
+}
+%% Represents a registered user who can submit, borrow, and view works.
+
+class Librarian {
+    +moderationRights: bool
+    +moderateWork()
+    +enrichMetadata()
+    +validateWork()
+}
+%% Represents a member with additional privileges for moderation and work management.
+
+
+
+
+User 
+
+Work
+
+WorkVersion
+
+Metadata
+
+ModerationTicket
+
+ModerationNote
+
+BorrowRecord
+
+StorageService (interface)
+
+IPFSAdapter (impl StorageService)
+
+GitRepositoryAdapter
+
+WorkService
+
+ModerationService
+
+OCRService
+
+AuthController
+
+WorkController
+
+Role (enum)
+
+WorkStatus (enum)
 ```mermaid
 classDiagram
 
@@ -148,6 +212,9 @@ class WorkStatus {
 %% ======================
 %% RELATIONS
 %% ======================
+
+User <|-- Member
+User <|-- Librarian
 
 User "1" --> "*" BorrowRecord
 User "1" --> "*" Work
