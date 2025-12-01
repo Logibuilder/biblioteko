@@ -4,19 +4,38 @@ import { login as apiLogin, logout as apiLogout } from '../api/authApi';
 const useAuth = () => {
     const [user, setUser] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(false); // Utilisé pour les actions (login/logout)
-    const [isAuthReady, setIsAuthReady] = useState(false); // 👈 NOUVEL ÉTAT CRITIQUE pour l'initialisation
+    const [isLoading, setIsLoading] = useState(false);
+    const [isAuthReady, setIsAuthReady] = useState(false);
     const [error, setError] = useState(null);
 
-    // Charger l'état depuis le stockage local (ex: token) à l'initialisation
+    // Charger l'état depuis le stockage local à l'initialisation
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-            setIsAuthenticated(true);
-        }
-        // ⚠️ Marque l'initialisation comme terminée DANS TOUS LES CAS
-        setIsAuthReady(true);
+        const initAuth = async () => {
+            // ✅ Délai minimal pour améliorer l'UX (optionnel)
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const storedUser = localStorage.getItem('user');
+            const storedToken = localStorage.getItem('token');
+            
+            if (storedUser && storedToken) {
+                try {
+                    const userData = JSON.parse(storedUser);
+                    setUser(userData);
+                    setIsAuthenticated(true);
+                    console.log('✅ Session restaurée:', userData.email);
+                } catch (err) {
+                    console.error('❌ Erreur lors de la restauration de session:', err);
+                    // Nettoyage en cas de données corrompues
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('token');
+                }
+            }
+            
+            // Marque l'initialisation comme terminée
+            setIsAuthReady(true);
+        };
+
+        initAuth();
     }, []);
 
     const login = useCallback(async (email, password) => {
@@ -49,10 +68,9 @@ const useAuth = () => {
         setUser(null);
         setIsAuthenticated(false);
         setError(null);
-        console.log("Utilisateur déconnecté.");
+        console.log("✅ Utilisateur déconnecté.");
     }, []);
 
-    // ⚠️ Ajout de isAuthReady dans l'objet retourné
     return { user, isAuthenticated, isLoading, error, login, logout, isAuthReady };
 };
 
