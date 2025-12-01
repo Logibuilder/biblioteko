@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuthContext } from '../hooks/AuthContext';
 import LogoutButton from '../components/Auth/LogoutButton';
+import ProposerOeuvreForm from '../components/soumission/ProposerOeuvreForm';
 // Assurez-vous que ce chemin est correct :
 // import OeuvreAModererList from '../components/Moderation/OeuvreAModererList'; 
 
@@ -36,6 +37,15 @@ const DashboardPage = () => {
                 <>
                     <h2>Espace Membre</h2>
                     <p>Bienvenue sur votre espace. Vous pouvez **Proposer une nouvelle œuvre** ou consulter vos emprunts.</p>
+                </>
+            )}
+
+            {/* 2. AFFICHAGE CONDITIONNEL POUR LE MEMBRE STANDARD */}
+            {!isBibliothecaire && (
+                <>
+                    <h2>Espace Membre : Proposer un Titre</h2>
+                    {/* Le Membre standard voit le formulaire de soumission */}
+                    <ProposerOeuvreForm />
                 </>
             )}
 
