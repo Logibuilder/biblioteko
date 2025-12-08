@@ -1,5 +1,5 @@
 // Simulates existing works awaiting moderation
-const FAKE_OEUVRES_A_MODERER = [
+let FAKE_OEUVRES_A_MODERER = [
     {
         id: 1,
         titre: "Architecture des logiciels",
@@ -228,5 +228,77 @@ Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
             });
 
         }, 2500); // On simule un délai de 2.5s pour le "traitement"
+    });
+};
+
+
+
+// --- SIMULATION IA : Analyse Juridique & Métadonnées ---
+export const analyserOeuvreIA = (oeuvreId) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            console.log(`[IA] Analyse juridique de l'œuvre ${oeuvreId}...`);
+            
+            // Simulation : On varie le résultat selon l'ID pour l'exemple
+            const isPublicDomain = oeuvreId === 2; // Supposons que l'ID 2 est Victor Hugo (Libre)
+
+            resolve({
+                titreDetecte: isPublicDomain ? "Les Misérables" : "Architecture Logicielle",
+                auteurDetecte: isPublicDomain ? "Victor Hugo" : "M. Launay",
+                anneeDetectee: isPublicDomain ? "1862" : "2024",
+                resume: "Analyse automatique du contenu...",
+                // Suggestion basée sur la date (logique métier)
+                destinationSuggeree: isPublicDomain ? "fond_commun" : "sequestre", 
+                confiance: isPublicDomain ? "98%" : "85%"
+            });
+        }, 1500);
+    });
+};
+
+// --- ACTION : Valider et Déplacer ---
+export const validerOeuvre = (id, destination, token) => {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            const index = FAKE_OEUVRES_A_MODERER.findIndex(o => o.id === id);
+            if (index === -1) {
+                reject(new Error("Œuvre introuvable."));
+                return;
+            }
+
+            const oeuvre = FAKE_OEUVRES_A_MODERER[index];
+            
+            // 1. Retirer de 'a_moderer'
+            FAKE_OEUVRES_A_MODERER.splice(index, 1);
+
+            // 2. Logique de déplacement (Métaphore de répertoires)
+            let cheminFinal = "";
+            if (destination === "fond_commun") {
+                cheminFinal = `/fond_commun/${oeuvre.fichier}`;
+                // Ici, on ajouterait l'œuvre à FAKE_OEUVRES_DISPONIBLES avec flag "Gratuit"
+            } else if (destination === "sequestre") {
+                cheminFinal = `/sequestre/${oeuvre.fichier}`;
+                // Ici, on ajouterait l'œuvre à FAKE_OEUVRES_DISPONIBLES avec flag "Empruntable"
+            }
+
+            console.log(`[GIT] git mv a_moderer/${oeuvre.fichier} ${cheminFinal}`);
+            console.log(`[GIT] git commit -m "Validation bibliothécaire: ${oeuvre.titre}"`);
+
+            resolve({ 
+                success: true, 
+                message: `Validé ! Déplacé vers 📂 ${destination}.` 
+            });
+        }, 800);
+    });
+};
+
+// --- ACTION : Refuser ---
+export const refuserOeuvre = (id, motif, token) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            const index = FAKE_OEUVRES_A_MODERER.findIndex(o => o.id === id);
+            if (index !== -1) FAKE_OEUVRES_A_MODERER.splice(index, 1);
+            console.log(`[BACKEND] Rejet : ${motif}`);
+            resolve({ success: true, message: "Œuvre rejetée et supprimée." });
+        }, 500);
     });
 };

@@ -56,9 +56,22 @@ const DashboardLayout = () => {
             )}
 
             {isBibliothecaire && (
-                <div className="alert alert-warning mb-4">
-                    Mode Bibliothécaire activé (Navigation spécifique à venir)
-                </div>
+                <ul className="nav nav-tabs mb-4">
+                    <li className="nav-item">
+                        <NavLink 
+                            to="/dashboard/moderer" 
+                            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                        >
+                            🛡️ Modération
+                        </NavLink>
+                    </li>
+                    {/* Vous pourrez ajouter d'autres onglets ici plus tard (ex: Gestion Utilisateurs) */}
+                    <li className="nav-item">
+                        <span className="nav-link disabled text-muted">
+                            ⚙️ Administration (Bientôt)
+                        </span>
+                    </li>
+                </ul>
             )}
 
             {/* --- ZONE DE CONTENU VARIABLE --- */}

@@ -12,6 +12,7 @@ import EmprunterOeuvre from '../components/emprunt/EmprunterOeuvre';
 import ProposerOeuvreForm from '../components/soumission/ProposerOeuvreForm';
 // Assurez-vous que ce composant existe bien à cet endroit
 import NumeriserOeuvre from '../components/numerisation/NumeriserOeuvre';
+import OeuvreAModerer from '../components/moderation/OeuvreAModerer';
 
 /**
  * Protection des routes : Vérifie si l'auth est chargée et si l'utilisateur est connecté
@@ -50,6 +51,7 @@ const App = () => {
                         <Route path="emprunter" element={<EmprunterOeuvre />} />
                         <Route path="numeriser" element={<NumeriserOeuvre />} />
                         <Route path="proposer" element={<ProposerOeuvreForm />} />
+                        <Route path="moderer" element={<OeuvreAModerer />} />
 
                     </Route>
 
