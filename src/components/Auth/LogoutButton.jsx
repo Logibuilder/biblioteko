@@ -7,15 +7,9 @@ const LogoutButton = () => {
     return (
         <button 
             onClick={logout} 
-            style={{ 
-                padding: '8px 15px', 
-                backgroundColor: '#dc3545', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '5px', 
-                cursor: 'pointer' 
-            }}
+            className="btn btn-danger"
         >
+            <i className="bi bi-box-arrow-right me-2"></i>
             Déconnexion
         </button>
     );

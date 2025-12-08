@@ -2,79 +2,57 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthContext } from '../hooks/AuthContext';
 
+// Pages et Layouts
 import LoginPage from './LoginPage';
-import DashboardPage from './DashboardPage';
+import DashboardLayout from '../layouts/DashboardLayout'; // Nouveau
+
+// Composants fonctionnels (qui deviennent des "pages")
+import EmprunterOeuvre from '../components/emprunt/EmprunterOeuvre';
+import ProposerOeuvreForm from '../components/soumission/ProposerOeuvreForm';
+import NumeriserOeuvre from '../components/numerisation/NumeriserOeuvre';
 
 /**
- * Composant pour protéger les routes qui nécessitent une authentification.
+ * Protection des routes : Vérifie si l'auth est chargée et si l'utilisateur est connecté
  */
-const ProtectedRoute = ({ element: Element }) => {
-    // ✅ Utilisation de isAuthReady au lieu de isLoading
+const ProtectedRoute = ({ element }) => {
     const { isAuthenticated, isAuthReady } = useAuthContext();
 
-    // Affichage pendant l'initialisation (lecture du localStorage)
-    if (!isAuthReady) {
-        return (
-            <div style={{ 
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '100vh',
-                fontSize: '1.2em',
-                gap: '20px'
-            }}>
-                <div style={{
-                    width: '50px',
-                    height: '50px',
-                    border: '5px solid #f3f3f3',
-                    borderTop: '5px solid #646cff',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite'
-                }}></div>
-                <p>Vérification de l'authentification...</p>
-                <style>{`
-                    @keyframes spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                `}</style>
-            </div>
-        );
-    }
+    if (!isAuthReady) return <div className="text-center p-5">Chargement de l'application...</div>;
     
-    // Si non authentifié, redirige vers la page de connexion
-    return isAuthenticated ? Element : <Navigate to="/login" replace />;
+    return isAuthenticated ? element : <Navigate to="/login" replace />;
 };
 
 const App = () => {
     return (
         <div style={{minHeight: '100vh', display: 'flex', flexDirection: 'column'}}>
-            <h1 style={{
-                color: 'green', 
-                textAlign: 'center', 
-                padding: '10px', 
-                margin: 0, 
-                borderBottom: '1px solid #ccc'
-            }}>
-                Bibliothèque Numérique
-            </h1>
+            {/* Titre global de l'app (optionnel, peut être retiré si le Layout gère tout) */}
+            <div style={{ backgroundColor: '#212529', color: 'white', padding: '10px', textAlign: 'center' }}>
+                Bibliothèque Numérique Décentralisée
+            </div>
+
             <main style={{flexGrow: 1}}>
                 <Routes>
-                    {/* Redirige l'accueil vers le dashboard */}
+                    {/* Redirection racine */}
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     
-                    {/* Route Publique */}
+                    {/* Page de Login */}
                     <Route path="/login" element={<LoginPage />} />
 
-                    {/* Routes Protégées */}
-                    <Route 
-                        path="/dashboard" 
-                        element={<ProtectedRoute element={<DashboardPage />} />} 
-                    />
+                    {/* --- ROUTES IMBRIQUÉES DU DASHBOARD --- */}
+                    <Route path="/dashboard" element={<ProtectedRoute element={<DashboardLayout />} />}>
+                        
+                        {/* 1. Redirection par défaut : /dashboard -> /dashboard/emprunter */}
+                        <Route index element={<Navigate to="emprunter" replace />} />
 
-                    {/* Gestion des routes non trouvées (404) */}
-                    <Route path="*" element={<h1>404 - Page non trouvée</h1>} />
+                        {/* 2. Les sous-routes */}
+                        <Route path="emprunter" element={<EmprunterOeuvre />} />
+                        <Route path="numeriser" element={<NumeriserOeuvre />} />
+                        <Route path="proposer" element={<ProposerOeuvreForm />} />
+
+                    </Route>
+
+                    {/* 404 */}
+                    <Route path="*" element={<h1 className="text-center mt-5">404 - Page introuvable</h1>} />
                 </Routes>
             </main>
         </div>

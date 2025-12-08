@@ -4,32 +4,25 @@ import { useAuthContext } from '../hooks/AuthContext';
 import { Navigate } from 'react-router-dom';
 
 const LoginPage = () => {
-    // ✅ Récupérer AUSSI isAuthReady
     const { isAuthenticated, isAuthReady } = useAuthContext();
 
-    // ✅ ÉTAPE 1: Attendre que l'initialisation soit terminée
     if (!isAuthReady) {
         return (
-            <div style={{ 
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '80vh',
-                fontSize: '1.2em'
-            }}>
-                Chargement de la page de connexion...
+            <div className="d-flex flex-column align-items-center justify-content-center" style={{minHeight: '80vh'}}>
+                <div className="spinner-border text-success mb-3" style={{width: '3rem', height: '3rem'}} role="status">
+                    <span className="visually-hidden">Chargement...</span>
+                </div>
+                <p className="fs-5 text-muted">Chargement de la page de connexion...</p>
             </div>
         );
     }
 
-    // ✅ ÉTAPE 2: Si déjà authentifié, rediriger vers le dashboard
     if (isAuthenticated) {
         return <Navigate to="/dashboard" replace />;
     }
 
-    // ✅ ÉTAPE 3: Afficher le formulaire de connexion
     return (
-        <div style={{ padding: '50px' }}>
+        <div className="py-5">
             <LoginForm /> 
         </div>
     );

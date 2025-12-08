@@ -58,3 +58,99 @@ export const soumettreOeuvre = (formData, token) => {
         }, 1500);
     });
 };
+
+
+
+// ... (Conservez le code existant : FAKE_OEUVRES_A_MODERER, fetchOeuvresAModerer, soumettreOeuvre) ...
+
+// --- NOUVEAU CODE À AJOUTER À LA FIN DU FICHIER ---
+
+// 1. Données simulées : Œuvres disponibles à l'emprunt// ... (Gardez le haut du fichier: FAKE_OEUVRES_A_MODERER, fetchOeuvresAModerer, soumettreOeuvre) ...
+
+// --- DÉBUT DU CODE CORRIGÉ À COPIER ---
+
+// 1. Données simulées : Utilisation de 'let' pour permettre la modification des listes en mémoire
+let FAKE_OEUVRES_DISPONIBLES = [
+    { id: 101, titre: "Les Misérables", auteur: "Victor Hugo", dispo: true },
+    { id: 102, titre: "1984", auteur: "George Orwell", dispo: true },
+    { id: 103, titre: "Le Meilleur des mondes", auteur: "Aldous Huxley", dispo: true },
+    { id: 104, titre: "Fondation", auteur: "Isaac Asimov", dispo: true },
+    { id: 105, titre: "Dune", auteur: "Frank Herbert", dispo: true },
+];
+
+let FAKE_MES_EMPRUNTS = [
+    // Exemple : { id: 99, titre: "Le Petit Prince", auteur: "Saint-Exupéry", dateRetour: "2025-12-01" }
+];
+
+// 2. Fonction pour récupérer les emprunts (utilisée par MesEmpruntsList)
+export const fetchMesEmprunts = (userEmail, token) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            console.log(`[BACKEND SIMULÉ] Récupération des emprunts pour ${userEmail}`);
+            // On renvoie une copie du tableau pour éviter les problèmes de référence
+            resolve([...FAKE_MES_EMPRUNTS]);
+        }, 500);
+    });
+};
+
+// 3. Fonction pour récupérer les œuvres disponibles
+export const fetchOeuvresDisponibles = (token) => {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            if (!token) {
+                reject(new Error("Vous devez être connecté."));
+                return;
+            }
+            // On renvoie une copie du tableau
+            resolve([...FAKE_OEUVRES_DISPONIBLES]);
+        }, 800);
+    });
+};
+
+// 4. Fonction d'emprunt CORRIGÉE
+export const emprunterOeuvre = (oeuvreId, userEmail, token) => {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            if (!token) {
+                reject(new Error("Accès refusé."));
+                return;
+            }
+
+            // A. Trouver l'œuvre dans la liste des dispos
+            const oeuvreIndex = FAKE_OEUVRES_DISPONIBLES.findIndex(o => o.id === oeuvreId);
+            
+            if (oeuvreIndex === -1) {
+                reject(new Error("Œuvre non disponible ou introuvable."));
+                return;
+            }
+
+            const oeuvre = FAKE_OEUVRES_DISPONIBLES[oeuvreIndex];
+
+            // B. Calcul date retour (J + 14)
+            const dateRetour = new Date();
+            dateRetour.setDate(dateRetour.getDate() + 14);
+
+            // C. SIMULATION BACKEND : Déplacer de "Dispo" vers "Mes Emprunts"
+            // Retirer de la liste disponible
+            FAKE_OEUVRES_DISPONIBLES.splice(oeuvreIndex, 1);
+            
+            // Créer l'objet emprunt complet
+            const nouvelEmprunt = { 
+                ...oeuvre, 
+                dateRetour: dateRetour.toISOString() // Format ISO standard
+            };
+            
+            // Ajouter à l'historique serveur
+            FAKE_MES_EMPRUNTS.push(nouvelEmprunt);
+
+            console.log(`[BACKEND SIMULÉ] Emprunt de l'ID ${oeuvreId} validé.`);
+
+            // D. RÉPONSE : On renvoie l'objet 'emprunt' pour que le frontend puisse l'afficher
+            resolve({
+                success: true,
+                message: `Emprunt validé ! Retour prévu le ${dateRetour.toLocaleDateString()}`,
+                emprunt: nouvelEmprunt // ✅ C'est cette ligne qui corrige votre erreur
+            });
+        }, 800);
+    });
+};

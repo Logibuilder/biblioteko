@@ -2,35 +2,32 @@ import React, { useState } from 'react';
 import { soumettreOeuvre } from '../../api/oeuvreApi';
 import { useAuthContext } from '../../hooks/AuthContext';
 
-/**
- * Form allowing a Member to submit a digital file (PDF, MD, etc.)
- * and its metadata for moderation.
- */
 const ProposerOeuvreForm = () => {
-    // Access global user context
     const { user } = useAuthContext();
     const token = localStorage.getItem('token'); 
 
-    // Form states
     const [titre, setTitre] = useState('');
     const [auteur, setAuteur] = useState('');
     const [fichier, setFichier] = useState(null);
     
-    // API interaction states
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Role check (safety measure)
     if (!user || user.role !== 'membre') {
-        return <p style={{ color: 'orange' }}>Only members are allowed to submit works.</p>;
+        return (
+            <div className="alert alert-warning" role="alert">
+                <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                Seuls les membres peuvent proposer des œuvres.
+            </div>
+        );
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!titre || !fichier) {
-            setError("Title and file (PDF/MD) are mandatory.");
+            setError("Le titre et le fichier (PDF/MD) sont obligatoires.");
             return;
         }
 
@@ -39,7 +36,6 @@ const ProposerOeuvreForm = () => {
         setError(null);
 
         try {
-            // CRITICAL: Creating FormData object for file upload
             const formData = new FormData();
             formData.append('titre', titre);
             formData.append('auteur', auteur);
@@ -47,94 +43,134 @@ const ProposerOeuvreForm = () => {
             formData.append('soumisPar', user.email);
             formData.append('token', token); 
 
-            // Call to the simulated API (ControleurDepot)
             const result = await soumettreOeuvre(formData, token);
             
             setMessage(result.message);
             
-            // Reset form on success
+            // Reset form
             setTitre('');
             setAuteur('');
             setFichier(null);
+            // Reset file input
+            document.getElementById('fichier').value = '';
 
         } catch (err) {
-            setError(err.message || "Error during work submission.");
+            setError(err.message || "Erreur lors de la soumission de l'œuvre.");
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div style={{ maxWidth: '600px', margin: '20px auto', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-            <h2>📚 Proposer une Œuvre à la Communauté</h2>
-            <p style={{ color: '#666', marginBottom: '20px' }}>Your submission will be placed in the repository **`a_moderer`** awaiting librarian validation (Git infrastructure).</p>
-
-            {error && <p style={{ color: 'red', fontWeight: 'bold' }}>❌ {error}</p>}
-            {message && <p style={{ color: 'green', fontWeight: 'bold' }}>✅ {message}</p>}
-
-            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '15px' }}>
-                
-                {/* Champ Titre */}
-                <div>
-                    <label htmlFor="titre" style={labelStyle}>Titre de l'œuvre *</label>
-                    <input
-                        type="text"
-                        id="titre"
-                        value={titre}
-                        onChange={(e) => setTitre(e.target.value)}
-                        disabled={isLoading}
-                        style={inputStyle}
-                        required
-                    />
+        <div className="card shadow-sm">
+            <div className="card-header bg-success text-white">
+                <h4 className="mb-0">
+                    <i className="bi bi-file-earmark-arrow-up me-2"></i>
+                    Proposer une Œuvre à la Communauté
+                </h4>
+            </div>
+            <div className="card-body">
+                <div className="alert alert-info" role="alert">
+                    <i className="bi bi-info-circle-fill me-2"></i>
+                    Votre soumission sera placée dans le répertoire <code>a_moderer</code> en attente de validation par un bibliothécaire.
                 </div>
 
-                {/* Champ Auteur */}
-                <div>
-                    <label htmlFor="auteur" style={labelStyle}>Nom(s) de l'auteur(s)</label>
-                    <input
-                        type="text"
-                        id="auteur"
-                        value={auteur}
-                        onChange={(e) => setAuteur(e.target.value)}
-                        disabled={isLoading}
-                        style={inputStyle}
-                    />
-                </div>
+                {error && (
+                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i className="bi bi-x-circle-fill me-2"></i>
+                        <strong>Erreur :</strong> {error}
+                        <button type="button" className="btn-close" onClick={() => setError(null)} aria-label="Close"></button>
+                    </div>
+                )}
 
-                {/* Champ Fichier */}
-                <div>
-                    <label htmlFor="fichier" style={labelStyle}>Fichier Numérique (PDF ou MD) *</label>
-                    <input
-                        type="file"
-                        id="fichier"
-                        onChange={(e) => setFichier(e.target.files[0])}
-                        disabled={isLoading}
-                        style={{ ...inputStyle, border: 'none', padding: '10px 0' }}
-                        required
-                    />
-                </div>
+                {message && (
+                    <div className="alert alert-success alert-dismissible fade show" role="alert">
+                        <i className="bi bi-check-circle-fill me-2"></i>
+                        <strong>Succès :</strong> {message}
+                        <button type="button" className="btn-close" onClick={() => setMessage('')} aria-label="Close"></button>
+                    </div>
+                )}
 
-                <button 
-                    type="submit" 
-                    disabled={isLoading} 
-                    style={{ 
-                        padding: '12px 20px', 
-                        backgroundColor: isLoading ? '#aaa' : '#007bff', 
-                        color: 'white', 
-                        border: 'none', 
-                        borderRadius: '4px', 
-                        cursor: 'pointer',
-                        fontSize: '1em'
-                    }}
-                >
-                    {isLoading ? 'Envoi en cours...' : 'Soumettre pour Modération'}
-                </button>
-            </form>
+                <form onSubmit={handleSubmit}>
+                    {/* Champ Titre */}
+                    <div className="mb-3">
+                        <label htmlFor="titre" className="form-label fw-bold">
+                            <i className="bi bi-book me-2"></i>
+                            Titre de l'œuvre <span className="text-danger">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            id="titre"
+                            value={titre}
+                            onChange={(e) => setTitre(e.target.value)}
+                            disabled={isLoading}
+                            placeholder="Ex: Architecture des logiciels"
+                            required
+                        />
+                    </div>
+
+                    {/* Champ Auteur */}
+                    <div className="mb-3">
+                        <label htmlFor="auteur" className="form-label fw-bold">
+                            <i className="bi bi-person me-2"></i>
+                            Nom(s) de l'auteur(s)
+                        </label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            id="auteur"
+                            value={auteur}
+                            onChange={(e) => setAuteur(e.target.value)}
+                            disabled={isLoading}
+                            placeholder="Ex: Launay M."
+                        />
+                    </div>
+
+                    {/* Champ Fichier */}
+                    <div className="mb-3">
+                        <label htmlFor="fichier" className="form-label fw-bold">
+                            <i className="bi bi-file-earmark-pdf me-2"></i>
+                            Fichier Numérique (PDF ou MD) <span className="text-danger">*</span>
+                        </label>
+                        <input
+                            type="file"
+                            className="form-control"
+                            id="fichier"
+                            onChange={(e) => setFichier(e.target.files[0])}
+                            disabled={isLoading}
+                            accept=".pdf,.md"
+                            required
+                        />
+                        <div className="form-text">
+                            <i className="bi bi-info-circle me-1"></i>
+                            Formats acceptés : PDF, Markdown (.md)
+                        </div>
+                    </div>
+
+                    <div className="d-grid">
+                        <button 
+                            type="submit" 
+                            className="btn btn-success btn-lg"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Envoi en cours...
+                                </>
+                            ) : (
+                                <>
+                                    <i className="bi bi-send me-2"></i>
+                                    Soumettre pour Modération
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 };
-
-const labelStyle = { display: 'block', marginBottom: '5px', fontWeight: 'bold' };
-const inputStyle = { width: '100%', padding: '10px', boxSizing: 'border-box', border: '1px solid #ccc', borderRadius: '4px' };
 
 export default ProposerOeuvreForm;
