@@ -1,10 +1,9 @@
 import React from 'react';
-import { Outlet, NavLink, Navigate } from 'react-router-dom';
-import { useAuthContext } from '../hooks/AuthContext';
-import LogoutButton from '../components/Auth/LogoutButton';
-
+import { Outlet, NavLink, Navigate } from "react-router-dom";
+import { useAuthContext } from "../../hooks/AuthContext";
+import LogoutButton from "../Auth/LogoutButton";
 const DashboardLayout = () => {
-    const { user } = useAuthContext();
+    const { user, isAuthenticated, logout } = useAuthContext();
 
     // Sécurité : Si l'utilisateur force l'URL sans être connecté
     if (!user) return <Navigate to="/login" replace />;

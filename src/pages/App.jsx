@@ -4,11 +4,13 @@ import { useAuthContext } from '../hooks/AuthContext';
 
 // Pages et Layouts
 import LoginPage from './LoginPage';
-import DashboardLayout from '../layouts/DashboardLayout'; // Nouveau
+// CORRECTION ICI : Chemin vers components/layouts/DashBoardLayout (attention au 'B' majuscule)
+import DashboardLayout from '../components/layouts/DashboardLayout';
 
 // Composants fonctionnels (qui deviennent des "pages")
 import EmprunterOeuvre from '../components/emprunt/EmprunterOeuvre';
 import ProposerOeuvreForm from '../components/soumission/ProposerOeuvreForm';
+// Assurez-vous que ce composant existe bien à cet endroit
 import NumeriserOeuvre from '../components/numerisation/NumeriserOeuvre';
 
 /**
@@ -25,7 +27,7 @@ const ProtectedRoute = ({ element }) => {
 const App = () => {
     return (
         <div style={{minHeight: '100vh', display: 'flex', flexDirection: 'column'}}>
-            {/* Titre global de l'app (optionnel, peut être retiré si le Layout gère tout) */}
+            {/* Titre global de l'app */}
             <div style={{ backgroundColor: '#212529', color: 'white', padding: '10px', textAlign: 'center' }}>
                 Bibliothèque Numérique Décentralisée
             </div>

@@ -154,3 +154,79 @@ export const emprunterOeuvre = (oeuvreId, userEmail, token) => {
         }, 800);
     });
 };
+
+
+
+// ... (Gardez tout le code existant : emprunterOeuvre, etc.)
+
+// --- SECTION NUMÉRISATION (OCR) ---
+
+// 1. Stockage simulé des numérisations
+let FAKE_MES_NUMERISATIONS = [
+    // Exemple : { id: 501, titre: "Vieux Manuscrit", date: "2023-10-10", contenu: "# Titre\nTexte..." }
+];
+
+// 2. Récupérer l'historique des numérisations
+export const fetchMesNumerisations = (userEmail, token) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            console.log(`[BACKEND SIMULÉ] Récupération numérisations pour ${userEmail}`);
+            resolve([...FAKE_MES_NUMERISATIONS]);
+        }, 600);
+    });
+};
+
+// 3. Simuler le processus d'OCR (PDF -> Markdown)
+export const numeriserOeuvre = (formData, token) => {
+    const titre = formData.get('titre');
+    const fichier = formData.get('fichier');
+
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            if (!token) {
+                reject(new Error("Accès refusé."));
+                return;
+            }
+            if (!fichier) {
+                reject(new Error("Aucun fichier fourni."));
+                return;
+            }
+
+            console.log(`[BACKEND SIMULÉ] Traitement OCR en cours sur : ${fichier.name}...`);
+
+            // Génération d'un contenu Markdown fictif
+            const fakeMarkdownContent = `
+# ${titre}
+*(Numérisé le ${new Date().toLocaleDateString()})*
+
+## Introduction
+Ceci est le résultat simulé de la transformation du fichier **${fichier.name}**.
+L'algorithme de reconnaissance de caractères (OCR) a extrait ce texte.
+
+## Chapitre 1
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+> Fin de l'extrait numérisé.
+            `;
+
+            const nouvelleNumerisation = {
+                id: Date.now(),
+                titre: titre,
+                nomFichierOriginal: fichier.name,
+                date: new Date().toISOString(),
+                contenu: fakeMarkdownContent.trim()
+            };
+
+            // Ajout à l'historique
+            FAKE_MES_NUMERISATIONS.push(nouvelleNumerisation);
+
+            resolve({
+                success: true,
+                message: "Numérisation terminée avec succès !",
+                data: nouvelleNumerisation
+            });
+
+        }, 2500); // On simule un délai de 2.5s pour le "traitement"
+    });
+};
