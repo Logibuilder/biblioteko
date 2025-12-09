@@ -1,75 +1,32 @@
-// Simulates existing works awaiting moderation
+// src/api/oeuvreApi.js
+
+// ============================================================
+// 1. DONNÉES SIMULÉES (Base de données en mémoire RAM)
+// ============================================================
+
 let FAKE_OEUVRES_A_MODERER = [
-    {
-        id: 1,
-        titre: "Architecture des logiciels",
-        auteur: "Launay M.",
+    { 
+        id: 1, 
+        titre: "Architecture des logiciels", 
+        auteur: "Launay M.", 
         format: "PDF",
-        dateSoumission: "2025-11-15",
-        soumisPar: "membre@biblio.com"
+        fichier: "arch_soft.pdf", 
+        dateSoumission: "2025-11-15", 
+        soumisPar: "membre@biblio.com",
+        etat: "SOUMISE" 
+    },
+    { 
+        id: 2, 
+        titre: "Fables choisies", 
+        auteur: "Jean de La Fontaine", 
+        format: "PDF",
+        fichier: "fables.pdf", 
+        dateSoumission: "2025-11-16", 
+        soumisPar: "etudiant@biblio.com",
+        etat: "SOUMISE"
     },
 ];
 
-/**
- * Simulates the secure API call to list works for moderation (for Bibliothécaire).
- */
-export const fetchOeuvresAModerer = (token) => {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (!token || !token.startsWith('jwt_biblio')) {
-                reject(new Error("Access denied. You must be a librarian."));
-                return;
-            }
-            console.log("[FAKE API] Fetching works for moderation.");
-            resolve(FAKE_OEUVRES_A_MODERER);
-        }, 1000);
-    });
-};
-
-/**
- * Simulates the API call /proposer-oeuvre (Frontend -> ControleurDepot).
- * This simulates the backend logic: modeling the Oeuvre object and saving
- * the file to the 'a_moderer' Git repository directory.
- */
-export const soumettreOeuvre = (formData, token) => {
-    const titre = formData.get('titre');
-    const fichier = formData.get('fichier');
-    
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (!token || !token.startsWith('jwt_membre')) {
-                reject(new Error("Error: You must be logged in to submit a work."));
-                return;
-            }
-            if (!titre || !fichier) {
-                reject(new Error("Title and file are required."));
-                return;
-            }
-            
-            // CRITICAL STEP: Simulating the backend's action (Diagram Step 6)
-            console.log(`[BACKEND SIMULÉ - Contrôleur Dépôt] Receiving work '${titre}'. Modeling the Oeuvre object, setting status to 'EtatSoumise'.`);
-            console.log(`[BACKEND SIMULÉ - Dépôt Git] Saving file '${fichier.name}' to the 'a_moderer' directory via a commit.`);
-            
-            resolve({ 
-                success: true, 
-                message: "Work successfully submitted, awaiting moderation (stored in 'a_moderer').",
-                oeuvreId: Date.now()
-            });
-        }, 1500);
-    });
-};
-
-
-
-// ... (Conservez le code existant : FAKE_OEUVRES_A_MODERER, fetchOeuvresAModerer, soumettreOeuvre) ...
-
-// --- NOUVEAU CODE À AJOUTER À LA FIN DU FICHIER ---
-
-// 1. Données simulées : Œuvres disponibles à l'emprunt// ... (Gardez le haut du fichier: FAKE_OEUVRES_A_MODERER, fetchOeuvresAModerer, soumettreOeuvre) ...
-
-// --- DÉBUT DU CODE CORRIGÉ À COPIER ---
-
-// 1. Données simulées : Utilisation de 'let' pour permettre la modification des listes en mémoire
 let FAKE_OEUVRES_DISPONIBLES = [
     { id: 101, titre: "Les Misérables", auteur: "Victor Hugo", dispo: true },
     { id: 102, titre: "1984", auteur: "George Orwell", dispo: true },
@@ -78,227 +35,277 @@ let FAKE_OEUVRES_DISPONIBLES = [
     { id: 105, titre: "Dune", auteur: "Frank Herbert", dispo: true },
 ];
 
-let FAKE_MES_EMPRUNTS = [
-    // Exemple : { id: 99, titre: "Le Petit Prince", auteur: "Saint-Exupéry", dateRetour: "2025-12-01" }
-];
+let FAKE_MES_EMPRUNTS = [];
+let FAKE_MES_NUMERISATIONS = [];
 
-// 2. Fonction pour récupérer les emprunts (utilisée par MesEmpruntsList)
+
+// ============================================================
+// 2. SERVICE OEUVRE (Logique de Modération & Gestion)
+// ============================================================
+
+/**
+ * NOUVEAU : Vérification des permissions (RBAC)
+ */
+export const verifierPermission = (token, permission) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            // Simulation : seul le token 'jwt_biblio' a la permission
+            // Dans votre Login, biblio@biblio.com a le token 'jwt_biblio_456'
+            const hasPermission = token && token.startsWith('jwt_biblio');
+            
+            if (hasPermission) {
+                console.log(`[RBAC] Permission '${permission}' accordée.`);
+                resolve(true);
+            } else {
+                console.warn(`[RBAC] Permission '${permission}' REFUSÉE.`);
+                resolve(false);
+            }
+        }, 300);
+    });
+};
+
+/**
+ * NOUVEAU : Enrichissement des métadonnées (Loop du diagramme)
+ */
+export const sauvegarderMetadonnees = (id, nouvellesInfos, token) => {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            const oeuvre = FAKE_OEUVRES_A_MODERER.find(o => o.id === id);
+            if (!oeuvre) return reject(new Error("Œuvre introuvable"));
+
+            // Mise à jour de l'objet en mémoire
+            oeuvre.titre = nouvellesInfos.titre;
+            oeuvre.auteur = nouvellesInfos.auteur;
+            
+            console.log(`[Service] setInfos() sur l'œuvre ${id} :`, nouvellesInfos);
+            resolve({ success: true, message: "Métadonnées mises à jour." });
+        }, 400);
+    });
+};
+
+export const fetchOeuvresAModerer = (token) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            console.log("[API] Récupération de la file d'attente...");
+            resolve([...FAKE_OEUVRES_A_MODERER]);
+        }, 800);
+    });
+};
+
+export const soumettreOeuvre = (formData, token) => {
+    const titre = formData.get('titre');
+    const auteur = formData.get('auteur') || "Auteur inconnu";
+    const fichier = formData.get('fichier');
+    const soumisPar = formData.get('soumisPar');
+
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            if (!token) return reject(new Error("Connexion requise."));
+            if (!titre || !fichier) return reject(new Error("Titre et fichier requis."));
+
+            const newId = Date.now();
+            const extension = fichier.name ? fichier.name.split('.').pop().toUpperCase() : "PDF";
+
+            const nouvelleSoumission = {
+                id: newId,
+                titre: titre,
+                auteur: auteur,
+                format: extension,
+                fichier: fichier.name || "fichier.pdf",
+                dateSoumission: new Date().toISOString().split('T')[0],
+                soumisPar: soumisPar || "membre@biblio.com",
+                etat: "SOUMISE"
+            };
+
+            FAKE_OEUVRES_A_MODERER.push(nouvelleSoumission);
+            console.log(`[BACKEND] Nouvelle œuvre soumise : ${titre}`);
+
+            resolve({
+                success: true,
+                message: "Œuvre soumise avec succès.",
+                oeuvreId: newId,
+            });
+        }, 1500);
+    });
+};
+
+export const traiterOeuvre = (id, token) => {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            const oeuvre = FAKE_OEUVRES_A_MODERER.find(o => o.id === id);
+            if (!oeuvre) return reject(new Error("Œuvre introuvable"));
+            
+            oeuvre.etat = "EN_TRAITEMENT"; 
+            console.log(`[Service] Œuvre ${id} verrouillée (EN_TRAITEMENT).`);
+            
+            resolve({ success: true, etat: "EN_TRAITEMENT" });
+        }, 300);
+    });
+};
+
+export const validerOeuvre = (id, destination, token) => {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            const index = FAKE_OEUVRES_A_MODERER.findIndex(o => o.id === id);
+            if (index === -1) return reject(new Error("Œuvre introuvable."));
+
+            const oeuvre = FAKE_OEUVRES_A_MODERER[index];
+            FAKE_OEUVRES_A_MODERER.splice(index, 1);
+
+            const oeuvreValidee = {
+                id: oeuvre.id,
+                titre: oeuvre.titre,
+                auteur: oeuvre.auteur,
+                dispo: true,
+                isGratuit: destination === 'fond_commun',
+                dateValidation: new Date().toISOString()
+            };
+            
+            FAKE_OEUVRES_DISPONIBLES.push(oeuvreValidee);
+
+            console.log(`[GIT] Déplacement vers /${destination}/${oeuvre.fichier}`);
+            resolve({ success: true, message: `Validée dans ${destination}.` });
+        }, 800);
+    });
+};
+
+export const refuserOeuvre = (id, motif, token) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            const index = FAKE_OEUVRES_A_MODERER.findIndex(o => o.id === id);
+            if (index !== -1) FAKE_OEUVRES_A_MODERER.splice(index, 1);
+            
+            console.log(`[BACKEND] Rejet : ${motif}`);
+            resolve({ success: true, message: "Œuvre rejetée." });
+        }, 500);
+    });
+};
+
+export const analyserOeuvreIA = (oeuvreId) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            const isPublicDomain = oeuvreId % 2 === 0; 
+            const confiance = Math.floor(Math.random() * (99 - 80) + 80);
+            resolve({
+                titreDetecte: isPublicDomain ? "Titre Classique" : "Doc Technique",
+                auteurDetecte: isPublicDomain ? "Victor Hugo" : "Auteur Moderne",
+                anneeDetectee: isPublicDomain ? "1862" : "2024",
+                destinationSuggeree: isPublicDomain ? "fond_commun" : "sequestre", 
+                confiance: confiance
+            });
+        }, 1200);
+    });
+};
+
+
+// ============================================================
+// 3. SERVICE EMPRUNT & NUMÉRISATION
+// ============================================================
+
+export const fetchOeuvresDisponibles = (token) => {
+    return new Promise((resolve) => setTimeout(() => resolve([...FAKE_OEUVRES_DISPONIBLES]), 600));
+};
+
+// Remplacez la fonction fetchMesEmprunts existante par celle-ci :
+
 export const fetchMesEmprunts = (userEmail, token) => {
     return new Promise((resolve) => {
         setTimeout(() => {
-            console.log(`[BACKEND SIMULÉ] Récupération des emprunts pour ${userEmail}`);
-            // On renvoie une copie du tableau pour éviter les problèmes de référence
+            const now = new Date();
+            
+            // 1. Filtrer : Séparer les emprunts valides des expirés
+            const empruntsValides = [];
+            const empruntsExpires = [];
+
+            FAKE_MES_EMPRUNTS.forEach(emprunt => {
+                const dateRetour = new Date(emprunt.dateRetour);
+                if (dateRetour < now) {
+                    empruntsExpires.push(emprunt);
+                } else {
+                    empruntsValides.push(emprunt);
+                }
+            });
+
+            // 2. Traiter les expirations (Retour automatique en rayon)
+            if (empruntsExpires.length > 0) {
+                console.log(`[AUTO-SYSTEM] ${empruntsExpires.length} emprunt(s) expiré(s). Retour automatique.`);
+                
+                empruntsExpires.forEach(emp => {
+                    // On recrée l'objet œuvre "propre" (sans les dates d'emprunt)
+                    const oeuvreRendue = {
+                        id: emp.id,
+                        titre: emp.titre,
+                        auteur: emp.auteur,
+                        dispo: true,
+                        isGratuit: emp.isGratuit
+                    };
+                    // On la remet dans le catalogue disponible
+                    FAKE_OEUVRES_DISPONIBLES.push(oeuvreRendue);
+                });
+
+                // 3. Mettre à jour la "Base de données" simulée
+                // On vide le tableau original et on ne remet que les valides
+                FAKE_MES_EMPRUNTS.length = 0;
+                FAKE_MES_EMPRUNTS.push(...empruntsValides);
+            }
+
+            // 4. Renvoyer uniquement la liste à jour à l'utilisateur
             resolve([...FAKE_MES_EMPRUNTS]);
         }, 500);
     });
 };
 
-// 3. Fonction pour récupérer les œuvres disponibles
-export const fetchOeuvresDisponibles = (token) => {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (!token) {
-                reject(new Error("Vous devez être connecté."));
-                return;
-            }
-            // On renvoie une copie du tableau
-            resolve([...FAKE_OEUVRES_DISPONIBLES]);
-        }, 800);
-    });
-};
-
-// 4. Fonction d'emprunt CORRIGÉE
 export const emprunterOeuvre = (oeuvreId, userEmail, token) => {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
-            if (!token) {
-                reject(new Error("Accès refusé."));
-                return;
-            }
+            const index = FAKE_OEUVRES_DISPONIBLES.findIndex(o => o.id === oeuvreId);
+            if (index === -1) return reject(new Error("Œuvre indisponible."));
 
-            // A. Trouver l'œuvre dans la liste des dispos
-            const oeuvreIndex = FAKE_OEUVRES_DISPONIBLES.findIndex(o => o.id === oeuvreId);
-            
-            if (oeuvreIndex === -1) {
-                reject(new Error("Œuvre non disponible ou introuvable."));
-                return;
-            }
+            const oeuvre = FAKE_OEUVRES_DISPONIBLES[index];
+            FAKE_OEUVRES_DISPONIBLES.splice(index, 1);
 
-            const oeuvre = FAKE_OEUVRES_DISPONIBLES[oeuvreIndex];
-
-            // B. Calcul date retour (J + 14)
             const dateRetour = new Date();
             dateRetour.setDate(dateRetour.getDate() + 14);
 
-            // C. SIMULATION BACKEND : Déplacer de "Dispo" vers "Mes Emprunts"
-            // Retirer de la liste disponible
-            FAKE_OEUVRES_DISPONIBLES.splice(oeuvreIndex, 1);
-            
-            // Créer l'objet emprunt complet
             const nouvelEmprunt = { 
                 ...oeuvre, 
-                dateRetour: dateRetour.toISOString() // Format ISO standard
+                dateEmprunt: new Date().toISOString(),
+                dateRetour: dateRetour.toISOString() 
             };
             
-            // Ajouter à l'historique serveur
             FAKE_MES_EMPRUNTS.push(nouvelEmprunt);
+            console.log(`[BACKEND] Emprunt validé pour ${oeuvre.titre}`);
 
-            console.log(`[BACKEND SIMULÉ] Emprunt de l'ID ${oeuvreId} validé.`);
-
-            // D. RÉPONSE : On renvoie l'objet 'emprunt' pour que le frontend puisse l'afficher
             resolve({
                 success: true,
-                message: `Emprunt validé ! Retour prévu le ${dateRetour.toLocaleDateString()}`,
-                emprunt: nouvelEmprunt // ✅ C'est cette ligne qui corrige votre erreur
+                message: `Emprunt validé !`,
+                emprunt: nouvelEmprunt
             });
         }, 800);
     });
 };
 
-
-
-// ... (Gardez tout le code existant : emprunterOeuvre, etc.)
-
-// --- SECTION NUMÉRISATION (OCR) ---
-
-// 1. Stockage simulé des numérisations
-let FAKE_MES_NUMERISATIONS = [
-    // Exemple : { id: 501, titre: "Vieux Manuscrit", date: "2023-10-10", contenu: "# Titre\nTexte..." }
-];
-
-// 2. Récupérer l'historique des numérisations
 export const fetchMesNumerisations = (userEmail, token) => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            console.log(`[BACKEND SIMULÉ] Récupération numérisations pour ${userEmail}`);
-            resolve([...FAKE_MES_NUMERISATIONS]);
-        }, 600);
-    });
+    return new Promise((resolve) => setTimeout(() => resolve([...FAKE_MES_NUMERISATIONS]), 600));
 };
 
-// 3. Simuler le processus d'OCR (PDF -> Markdown)
 export const numeriserOeuvre = (formData, token) => {
     const titre = formData.get('titre');
     const fichier = formData.get('fichier');
 
     return new Promise((resolve, reject) => {
         setTimeout(() => {
-            if (!token) {
-                reject(new Error("Accès refusé."));
-                return;
-            }
-            if (!fichier) {
-                reject(new Error("Aucun fichier fourni."));
-                return;
-            }
-
-            console.log(`[BACKEND SIMULÉ] Traitement OCR en cours sur : ${fichier.name}...`);
-
-            // Génération d'un contenu Markdown fictif
-            const fakeMarkdownContent = `
-# ${titre}
-*(Numérisé le ${new Date().toLocaleDateString()})*
-
-## Introduction
-Ceci est le résultat simulé de la transformation du fichier **${fichier.name}**.
-L'algorithme de reconnaissance de caractères (OCR) a extrait ce texte.
-
-## Chapitre 1
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
-> Fin de l'extrait numérisé.
-            `;
-
-            const nouvelleNumerisation = {
+            if (!fichier) return reject(new Error("Fichier manquant."));
+            const mdContent = `# ${titre}\n\n[Contenu OCR simulé...]`;
+            const nouvelleNum = {
                 id: Date.now(),
                 titre: titre,
                 nomFichierOriginal: fichier.name,
                 date: new Date().toISOString(),
-                contenu: fakeMarkdownContent.trim()
+                contenu: mdContent
             };
-
-            // Ajout à l'historique
-            FAKE_MES_NUMERISATIONS.push(nouvelleNumerisation);
-
-            resolve({
-                success: true,
-                message: "Numérisation terminée avec succès !",
-                data: nouvelleNumerisation
-            });
-
-        }, 2500); // On simule un délai de 2.5s pour le "traitement"
-    });
-};
-
-
-
-// --- SIMULATION IA : Analyse Juridique & Métadonnées ---
-export const analyserOeuvreIA = (oeuvreId) => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            console.log(`[IA] Analyse juridique de l'œuvre ${oeuvreId}...`);
-            
-            // Simulation : On varie le résultat selon l'ID pour l'exemple
-            const isPublicDomain = oeuvreId === 2; // Supposons que l'ID 2 est Victor Hugo (Libre)
-
-            resolve({
-                titreDetecte: isPublicDomain ? "Les Misérables" : "Architecture Logicielle",
-                auteurDetecte: isPublicDomain ? "Victor Hugo" : "M. Launay",
-                anneeDetectee: isPublicDomain ? "1862" : "2024",
-                resume: "Analyse automatique du contenu...",
-                // Suggestion basée sur la date (logique métier)
-                destinationSuggeree: isPublicDomain ? "fond_commun" : "sequestre", 
-                confiance: isPublicDomain ? "98%" : "85%"
-            });
-        }, 1500);
-    });
-};
-
-// --- ACTION : Valider et Déplacer ---
-export const validerOeuvre = (id, destination, token) => {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            const index = FAKE_OEUVRES_A_MODERER.findIndex(o => o.id === id);
-            if (index === -1) {
-                reject(new Error("Œuvre introuvable."));
-                return;
-            }
-
-            const oeuvre = FAKE_OEUVRES_A_MODERER[index];
-            
-            // 1. Retirer de 'a_moderer'
-            FAKE_OEUVRES_A_MODERER.splice(index, 1);
-
-            // 2. Logique de déplacement (Métaphore de répertoires)
-            let cheminFinal = "";
-            if (destination === "fond_commun") {
-                cheminFinal = `/fond_commun/${oeuvre.fichier}`;
-                // Ici, on ajouterait l'œuvre à FAKE_OEUVRES_DISPONIBLES avec flag "Gratuit"
-            } else if (destination === "sequestre") {
-                cheminFinal = `/sequestre/${oeuvre.fichier}`;
-                // Ici, on ajouterait l'œuvre à FAKE_OEUVRES_DISPONIBLES avec flag "Empruntable"
-            }
-
-            console.log(`[GIT] git mv a_moderer/${oeuvre.fichier} ${cheminFinal}`);
-            console.log(`[GIT] git commit -m "Validation bibliothécaire: ${oeuvre.titre}"`);
-
-            resolve({ 
-                success: true, 
-                message: `Validé ! Déplacé vers 📂 ${destination}.` 
-            });
-        }, 800);
-    });
-};
-
-// --- ACTION : Refuser ---
-export const refuserOeuvre = (id, motif, token) => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const index = FAKE_OEUVRES_A_MODERER.findIndex(o => o.id === id);
-            if (index !== -1) FAKE_OEUVRES_A_MODERER.splice(index, 1);
-            console.log(`[BACKEND] Rejet : ${motif}`);
-            resolve({ success: true, message: "Œuvre rejetée et supprimée." });
-        }, 500);
+            FAKE_MES_NUMERISATIONS.push(nouvelleNum);
+            resolve({ success: true, message: "OCR terminé.", data: nouvelleNum });
+        }, 2000);
     });
 };

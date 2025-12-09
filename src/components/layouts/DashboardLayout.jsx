@@ -1,14 +1,28 @@
 import React from 'react';
-import { Outlet, NavLink, Navigate } from "react-router-dom";
+// 1. AJOUT : useLocation pour savoir sur quelle URL on est
+import { Outlet, NavLink, Navigate, useLocation } from "react-router-dom";
 import { useAuthContext } from "../../hooks/AuthContext";
 import LogoutButton from "../Auth/LogoutButton";
+
 const DashboardLayout = () => {
-    const { user, isAuthenticated, logout } = useAuthContext();
+    const { user } = useAuthContext();
+    const location = useLocation(); // Hook pour l'URL actuelle
 
     // Sécurité : Si l'utilisateur force l'URL sans être connecté
     if (!user) return <Navigate to="/login" replace />;
 
     const isBibliothecaire = user.role === 'bibliothecaire';
+
+    // 2. REDIRECTION AUTOMATIQUE (Si on est à la racine /dashboard)
+    if (location.pathname === '/dashboard') {
+        if (isBibliothecaire) {
+            // Le bibliothécaire va par défaut sur la modération
+            return <Navigate to="/dashboard/moderer" replace />;
+        } else {
+            // Le membre va par défaut sur l'emprunt
+            return <Navigate to="/dashboard/emprunter" replace />;
+        }
+    }
 
     return (
         <div className="container py-4">
@@ -24,8 +38,7 @@ const DashboardLayout = () => {
                 <LogoutButton />
             </div>
 
-            {/* --- NAVIGATION (Onglets transformés en Liens) --- */}
-            {/* On utilise NavLink qui gère automatiquement la classe 'active' */}
+            {/* --- NAVIGATION --- */}
             {!isBibliothecaire && (
                 <ul className="nav nav-tabs mb-4">
                     <li className="nav-item">
@@ -65,7 +78,14 @@ const DashboardLayout = () => {
                             🛡️ Modération
                         </NavLink>
                     </li>
-                    {/* Vous pourrez ajouter d'autres onglets ici plus tard (ex: Gestion Utilisateurs) */}
+                    <li className="nav-item">
+                        <NavLink 
+                            to="/dashboard/retours" 
+                            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                        >
+                            📅 Retours
+                        </NavLink>
+                    </li>
                     <li className="nav-item">
                         <span className="nav-link disabled text-muted">
                             ⚙️ Administration (Bientôt)
@@ -74,8 +94,7 @@ const DashboardLayout = () => {
                 </ul>
             )}
 
-            {/* --- ZONE DE CONTENU VARIABLE --- */}
-            {/* C'est ici que s'afficheront EmprunterOeuvreList, NumeriserOeuvre, etc. */}
+            {/* --- CONTENU --- */}
             <div className="bg-white p-3 border rounded shadow-sm" style={{ minHeight: '400px' }}>
                 <Outlet />
             </div>

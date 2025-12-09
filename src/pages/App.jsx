@@ -4,6 +4,7 @@ import { useAuthContext } from '../hooks/AuthContext';
 
 // Pages et Layouts
 import LoginPage from './LoginPage';
+import RegisterPage from './RegisterPage';
 // CORRECTION ICI : Chemin vers components/layouts/DashBoardLayout (attention au 'B' majuscule)
 import DashboardLayout from '../components/layouts/DashboardLayout';
 
@@ -40,12 +41,13 @@ const App = () => {
                     
                     {/* Page de Login */}
                     <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
 
                     {/* --- ROUTES IMBRIQUÉES DU DASHBOARD --- */}
                     <Route path="/dashboard" element={<ProtectedRoute element={<DashboardLayout />} />}>
                         
                         {/* 1. Redirection par défaut : /dashboard -> /dashboard/emprunter */}
-                        <Route index element={<Navigate to="emprunter" replace />} />
+                        {/* <Route index element={<Navigate to="emprunter" replace />} /> */}
 
                         {/* 2. Les sous-routes */}
                         <Route path="emprunter" element={<EmprunterOeuvre />} />

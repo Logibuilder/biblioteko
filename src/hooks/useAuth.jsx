@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { login as apiLogin, logout as apiLogout } from '../api/authApi';
+import { login as apiLogin, logout as apiLogout, register as apiRegister } from '../api/authApi';
 
 const useAuth = () => {
     const [user, setUser] = useState(null);
@@ -7,11 +7,12 @@ const useAuth = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isAuthReady, setIsAuthReady] = useState(false);
     const [error, setError] = useState(null);
+    
+    // ✅ Ajout de l'état token
+    const [token, setToken] = useState(null); 
 
-    // Charger l'état depuis le stockage local à l'initialisation
     useEffect(() => {
         const initAuth = async () => {
-            // ✅ Délai minimal pour améliorer l'UX (optionnel)
             await new Promise(resolve => setTimeout(resolve, 500));
             
             const storedUser = localStorage.getItem('user');
@@ -21,17 +22,17 @@ const useAuth = () => {
                 try {
                     const userData = JSON.parse(storedUser);
                     setUser(userData);
+                    // 👇 LIGNE MANQUANTE AJOUTÉE ICI :
+                    setToken(storedToken); 
                     setIsAuthenticated(true);
                     console.log('✅ Session restaurée:', userData.email);
                 } catch (err) {
                     console.error('❌ Erreur lors de la restauration de session:', err);
-                    // Nettoyage en cas de données corrompues
                     localStorage.removeItem('user');
                     localStorage.removeItem('token');
                 }
             }
             
-            // Marque l'initialisation comme terminée
             setIsAuthReady(true);
         };
 
@@ -44,10 +45,11 @@ const useAuth = () => {
         try {
             const userData = await apiLogin(email, password);
 
-            // Stockage et mise à jour de l'état
             localStorage.setItem('token', userData.token);
             localStorage.setItem('user', JSON.stringify(userData));
+            
             setUser(userData);
+            setToken(userData.token); // ✅ Correct
             setIsAuthenticated(true);
             return true;
         } catch (err) {
@@ -59,19 +61,44 @@ const useAuth = () => {
         }
     }, []);
 
+    // NOUVELLE FONCTION : Register
+    const register = useCallback(async (email, password, nom) => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            // Appel API
+            const userData = await apiRegister(email, password, nom);
+
+            // Si succès, on connecte l'utilisateur directement
+            localStorage.setItem('token', userData.token);
+            localStorage.setItem('user', JSON.stringify(userData));
+            
+            setUser(userData);
+            setToken(userData.token);
+            setIsAuthenticated(true);
+            return true;
+        } catch (err) {
+            setError(err.message || "Erreur lors de l'inscription.");
+            return false;
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
     const logout = useCallback(async () => {
         await apiLogout(); 
         
-        // Nettoyage de l'état et du stockage
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        
         setUser(null);
+        setToken(null); // ✅ Correct
         setIsAuthenticated(false);
         setError(null);
         console.log("✅ Utilisateur déconnecté.");
     }, []);
 
-    return { user, isAuthenticated, isLoading, error, login, logout, isAuthReady };
+    return { user, token, isAuthenticated, isLoading, error, login, logout,register, isAuthReady };
 };
 
 export default useAuth;

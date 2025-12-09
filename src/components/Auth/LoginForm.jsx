@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuthContext } from '../../hooks/AuthContext'; 
+import { Link } from 'react-router-dom';
 
 const LoginForm = () => {
     const [email, setEmail] = useState('');
@@ -87,10 +88,17 @@ const LoginForm = () => {
                                                 <i className="bi bi-box-arrow-in-right me-2"></i>
                                                 Se connecter
                                             </>
+                                            
                                         )}
                                     </button>
                                 </div>
                             </form>
+                            {/* 2. AJOUT DU LIEN D'INSCRIPTION ICI */}
+                            <div className="text-center mt-3 border-top pt-3">
+                                <p className="mb-0">
+                                    Pas encore de compte ? <Link to="/register" className="text-primary fw-bold">S'inscrire</Link>
+                                </p>
+                            </div>
 
                             <div className="mt-3 text-center">
                                 <small className="text-muted">
