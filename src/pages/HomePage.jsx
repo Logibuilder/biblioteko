@@ -39,7 +39,7 @@ const HomePage = () => {
                 <div className="container py-5">
                     <div className="row align-items-center g-5">
                         <div className="col-lg-6">
-                            <div className="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2 rounded-pill">
+                            <div className="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2 rounded-pill fs-5">
                                 Association CultureDiffusion
                             </div>
                             <h1 className="display-4 fw-bold text-dark mb-3">
