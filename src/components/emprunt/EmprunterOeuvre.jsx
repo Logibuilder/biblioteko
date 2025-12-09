@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { fetchOeuvresDisponibles, fetchMesEmprunts, emprunterOeuvre } from '../../api/oeuvreApi';
 import { useAuthContext } from '../../hooks/AuthContext';
-import MesEmprunts from './MesEmprunts'; // Import du nouveau composant
+import MesEmprunts from './MesEmprunts';
 
 const EmprunterOeuvre = () => {
     const { user } = useAuthContext();
     const token = localStorage.getItem('token');
 
-    // États "remontés" ici pour synchroniser les deux affichages
     const [disponibles, setDisponibles] = useState([]);
     const [mesEmprunts, setMesEmprunts] = useState([]);
-    
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
 
-    // Chargement initial
     useEffect(() => {
         const loadData = async () => {
             setIsLoading(true);
@@ -26,7 +23,7 @@ const EmprunterOeuvre = () => {
                 setDisponibles(disposData);
                 setMesEmprunts(empruntsData);
             } catch (err) {
-                console.error("Erreur de chargement", err);
+                console.error("Erreur", err);
             } finally {
                 setIsLoading(false);
             }
@@ -35,63 +32,84 @@ const EmprunterOeuvre = () => {
     }, [user, token]);
 
     const handleEmprunter = async (oeuvre) => {
-        if (!window.confirm(`Confirmer l'emprunt de "${oeuvre.titre}" ?`)) return;
-
+        if (!window.confirm(`Emprunter "${oeuvre.titre}" ?`)) return;
         try {
             const result = await emprunterOeuvre(oeuvre.id, user.email, token);
             setMessage(`✅ ${result.message}`);
-
-            // Mise à jour des états locaux pour rafraîchir l'interface immédiatement
             setMesEmprunts([...mesEmprunts, result.emprunt]);
             setDisponibles(disponibles.filter(o => o.id !== oeuvre.id));
-
             setTimeout(() => setMessage(''), 3000);
         } catch (err) {
             alert("Erreur : " + err.message);
         }
     };
 
-    if (isLoading) return <div className="text-center p-4">Chargement...</div>;
+    if (isLoading) return <div className="text-center p-5 text-primary"><div className="spinner-border"></div></div>;
 
     return (
-        <div className="container-fluid mt-3">
-            {message && <div className="alert alert-success">{message}</div>}
+        <div className="container-fluid">
+            {/* Header Page */}
+            <div className="mb-4">
+                <h3 className="fw-bold text-dark mb-1">Bibliothèque</h3>
+                <p className="text-muted">Parcourez le catalogue et empruntez vos prochaines lectures.</p>
+            </div>
 
-            <div className="row">
-                {/* COLONNE GAUCHE : Liste des œuvres disponibles */}
-                <div className="col-md-8">
-                    <div className="card shadow-sm mb-4">
-                        <div className="card-header bg-primary text-white">
-                            <h5 className="mb-0">📚 Œuvres Disponibles</h5>
+            {message && (
+                <div className="alert alert-success shadow-sm border-0 d-flex align-items-center mb-4">
+                    <i className="bi bi-check-circle-fill me-2 fs-5"></i>
+                    {message}
+                </div>
+            )}
+
+            <div className="row g-4">
+                {/* GAUCHE : GRILLE DES ŒUVRES */}
+                <div className="col-lg-8">
+                    {disponibles.length === 0 ? (
+                        <div className="alert alert-light border text-center py-5">
+                            <i className="bi bi-emoji-frown fs-1 text-muted mb-2 d-block"></i>
+                            Aucune œuvre disponible pour le moment.
                         </div>
-                        <div className="card-body">
-                            {disponibles.length === 0 ? (
-                                <p className="text-muted">Aucune œuvre disponible.</p>
-                            ) : (
-                                <div className="list-group">
-                                    {disponibles.map((oeuvre) => (
-                                        <div key={oeuvre.id} className="list-group-item d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 className="mb-0 fw-bold">{oeuvre.titre}</h6>
-                                                <small className="text-muted">par {oeuvre.auteur}</small>
+                    ) : (
+                        <div className="row row-cols-1 row-cols-md-2 g-3">
+                            {disponibles.map((oeuvre) => (
+                                <div key={oeuvre.id} className="col">
+                                    <div className="card h-100 shadow-sm hover-shadow border-0">
+                                        <div className="card-body d-flex flex-column">
+                                            <div className="d-flex justify-content-between align-items-start mb-3">
+                                                <div className="bg-primary bg-opacity-10 text-primary rounded p-3">
+                                                    <i className="bi bi-book-half fs-4"></i>
+                                                </div>
+                                                {oeuvre.isGratuit && (
+                                                    <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill">
+                                                        Gratuit
+                                                    </span>
+                                                )}
                                             </div>
-                                            <button 
-                                                className="btn btn-outline-primary btn-sm"
-                                                onClick={() => handleEmprunter(oeuvre)}
-                                            >
-                                                Emprunter
-                                            </button>
+                                            
+                                            <h5 className="card-title fw-bold text-dark mb-1">{oeuvre.titre}</h5>
+                                            <p className="card-text text-muted small mb-4">par {oeuvre.auteur}</p>
+                                            
+                                            <div className="mt-auto pt-3 border-top">
+                                                <button 
+                                                    className="btn btn-outline-primary w-100 rounded-pill fw-semibold"
+                                                    onClick={() => handleEmprunter(oeuvre)}
+                                                >
+                                                    <i className="bi bi-plus-circle me-2"></i>Emprunter
+                                                </button>
+                                            </div>
                                         </div>
-                                    ))}
+                                    </div>
                                 </div>
-                            )}
+                            ))}
                         </div>
-                    </div>
+                    )}
                 </div>
 
-                {/* COLONNE DROITE : Appel du composant dédié aux emprunts */}
-                <div className="col-md-4">
-                    <MesEmprunts emprunts={mesEmprunts} />
+                {/* DROITE : SIDEBAR MON CARTABLE */}
+                <div className="col-lg-4">
+                    <div className="sticky-top" style={{ top: '90px', zIndex: 1 }}>
+                        <MesEmprunts emprunts={mesEmprunts} />
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,0 +1,85 @@
+/* src/index.css */
+
+/* 1. IMPORT D'UNE BELLE POLICE (Optionnel mais recommandé) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+:root {
+  --primary-blue: #0d6efd;       /* Bleu Bootstrap standard ou un bleu plus pro comme #2563eb */
+  --dark-blue: #1e3a8a;          /* Pour les titres / sidebar */
+  --light-bg: #f3f4f6;           /* Gris très clair pour le fond de page */
+  --pure-white: #ffffff;
+}
+
+body {
+  font-family: 'Inter', sans-serif; /* Police moderne */
+  background-color: var(--light-bg);
+  color: #333;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 2. MODERNISATION DES CARTES (CARDS) */
+.card {
+  border: none !important;       /* On enlève les bordures grises moches */
+  border-radius: 12px !important; /* Coins arrondis */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important; /* Ombre douce */
+  background-color: var(--pure-white);
+  transition: transform 0.2s ease-in-out;
+}
+
+.card-header {
+  background-color: var(--pure-white) !important;
+  border-bottom: 1px solid #eee !important;
+  font-weight: 700;
+  color: var(--dark-blue);
+  padding: 1.5rem !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+/* 3. BOUTONS UNIFORMES */
+.btn {
+  border-radius: 8px !important;
+  padding: 0.5rem 1.25rem !important;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: var(--primary-blue) !important;
+  border-color: var(--primary-blue) !important;
+  box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
+}
+
+.btn-primary:hover {
+  background-color: var(--dark-blue) !important;
+  transform: translateY(-1px);
+}
+
+/* 4. TABLEAUX PROPRES */
+.table thead th {
+  background-color: #f8f9fa !important;
+  color: #6c757d;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #eee;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8faff !important; /* Légère teinte bleue au survol */
+}
+
+/* 5. MODALES MODERNES */
+.modal-content {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+.modal-header {
+  border-bottom: 1px solid #f0f0f0;
+  background-color: var(--primary-blue) !important; /* Header bleu */
+  color: white !important;
+  border-radius: 16px 16px 0 0;
+}
+.btn-close-white {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}

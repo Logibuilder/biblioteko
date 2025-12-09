@@ -1,105 +1,92 @@
+// src/components/layouts/DashboardLayout.jsx
 import React from 'react';
-// 1. AJOUT : useLocation pour savoir sur quelle URL on est
 import { Outlet, NavLink, Navigate, useLocation } from "react-router-dom";
 import { useAuthContext } from "../../hooks/AuthContext";
 import LogoutButton from "../Auth/LogoutButton";
 
 const DashboardLayout = () => {
     const { user } = useAuthContext();
-    const location = useLocation(); // Hook pour l'URL actuelle
+    const location = useLocation();
 
-    // Sécurité : Si l'utilisateur force l'URL sans être connecté
     if (!user) return <Navigate to="/login" replace />;
-
     const isBibliothecaire = user.role === 'bibliothecaire';
 
-    // 2. REDIRECTION AUTOMATIQUE (Si on est à la racine /dashboard)
+    // Redirection par défaut (comme vu précédemment)
     if (location.pathname === '/dashboard') {
-        if (isBibliothecaire) {
-            // Le bibliothécaire va par défaut sur la modération
-            return <Navigate to="/dashboard/moderer" replace />;
-        } else {
-            // Le membre va par défaut sur l'emprunt
-            return <Navigate to="/dashboard/emprunter" replace />;
-        }
+        return <Navigate to={isBibliothecaire ? "/dashboard/moderer" : "/dashboard/emprunter"} replace />;
     }
 
     return (
-        <div className="container py-4">
-            {/* --- HEADER COMMUN --- */}
-            <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                <div>
-                    <h1 className="h2 mb-0">🚀 Tableau de Bord</h1>
-                    <small className="text-muted">
-                        Connecté en tant que <strong>{user.email}</strong> 
-                        <span className="badge bg-secondary ms-2">{user.role.toUpperCase()}</span>
-                    </small>
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            
+            {/* --- 1. NAVBAR (Bleu & Blanc) --- */}
+            <nav className="navbar navbar-expand-lg sticky-top shadow-sm" style={{ backgroundColor: '#fff', borderBottom: '1px solid #eaeaea' }}>
+                <div className="container">
+                    <span className="navbar-brand fw-bold text-primary d-flex align-items-center">
+                        <i className="bi bi-book-half me-2 fs-4"></i>
+                        <span>Biblioteko</span>
+                    </span>
+
+                    <div className="d-flex align-items-center">
+                        <div className="me-3 text-end d-none d-md-block">
+                            <div className="fw-bold text-dark" style={{fontSize: '0.9rem'}}>{user.email}</div>
+                            <div className="badge bg-primary bg-opacity-10 text-primary" style={{fontSize: '0.7rem'}}>
+                                {user.role.toUpperCase()}
+                            </div>
+                        </div>
+                        <LogoutButton />
+                    </div>
                 </div>
-                <LogoutButton />
+            </nav>
+
+            {/* --- 2. SOUS-NAVIGATION (Pills modernes) --- */}
+            <div className="bg-white border-bottom py-3 mb-4">
+                <div className="container">
+                    <ul className="nav nav-pills justify-content-center">
+                        {!isBibliothecaire ? (
+                            <>
+                                <NavItem to="/dashboard/emprunter" icon="bi-collection" label="Emprunter" />
+                                <NavItem to="/dashboard/numeriser" icon="bi-magic" label="Numériser" />
+                                <NavItem to="/dashboard/proposer" icon="bi-pencil-square" label="Proposer" />
+                            </>
+                        ) : (
+                            <>
+                                <NavItem to="/dashboard/moderer" icon="bi-shield-check" label="Modération" />
+                                <NavItem to="/dashboard/retours" icon="bi-calendar-event" label="Retours" />
+                            </>
+                        )}
+                    </ul>
+                </div>
             </div>
 
-            {/* --- NAVIGATION --- */}
-            {!isBibliothecaire && (
-                <ul className="nav nav-tabs mb-4">
-                    <li className="nav-item">
-                        <NavLink 
-                            to="/dashboard/emprunter" 
-                            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                        >
-                            📚 Emprunter
-                        </NavLink>
-                    </li>
-                    <li className="nav-item">
-                        <NavLink 
-                            to="/dashboard/numeriser" 
-                            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                        >
-                            ⚡ Numériser (OCR)
-                        </NavLink>
-                    </li>
-                    <li className="nav-item">
-                        <NavLink 
-                            to="/dashboard/proposer" 
-                            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                        >
-                            ✍️ Proposer
-                        </NavLink>
-                    </li>
-                </ul>
-            )}
-
-            {isBibliothecaire && (
-                <ul className="nav nav-tabs mb-4">
-                    <li className="nav-item">
-                        <NavLink 
-                            to="/dashboard/moderer" 
-                            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                        >
-                            🛡️ Modération
-                        </NavLink>
-                    </li>
-                    <li className="nav-item">
-                        <NavLink 
-                            to="/dashboard/retours" 
-                            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                        >
-                            📅 Retours
-                        </NavLink>
-                    </li>
-                    <li className="nav-item">
-                        <span className="nav-link disabled text-muted">
-                            ⚙️ Administration (Bientôt)
-                        </span>
-                    </li>
-                </ul>
-            )}
-
-            {/* --- CONTENU --- */}
-            <div className="bg-white p-3 border rounded shadow-sm" style={{ minHeight: '400px' }}>
-                <Outlet />
+            {/* --- 3. CONTENU --- */}
+            <div className="container flex-grow-1 pb-5">
+                <div className="fade-in-up"> {/* Animation css optionnelle */}
+                    <Outlet />
+                </div>
             </div>
+
+            {/* --- 4. FOOTER SIMPLE --- */}
+            <footer className="text-center py-4 text-muted small mt-auto">
+                © 2025 Biblioteko - Gestion Décentralisée
+            </footer>
         </div>
     );
 };
+
+// Petit composant utilitaire pour les liens
+const NavItem = ({ to, icon, label }) => (
+    <li className="nav-item mx-1">
+        <NavLink 
+            to={to} 
+            className={({ isActive }) => 
+                `nav-link px-4 d-flex align-items-center gap-2 ${isActive ? 'active shadow-sm fw-bold' : 'text-secondary'}`
+            }
+            style={{ borderRadius: '50px' }} // Forme de "pilule"
+        >
+            <i className={`bi ${icon}`}></i> {label}
+        </NavLink>
+    </li>
+);
 
 export default DashboardLayout;
