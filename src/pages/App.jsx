@@ -31,11 +31,8 @@ const ProtectedRoute = ({ element }) => {
 
 const App = () => {
     return (
-        <div style={{minHeight: '100vh', display: 'flex', flexDirection: 'column'}}>
-            {/* Titre global de l'app */}
-            <div style={{ backgroundColor: '#212529', color: 'white', padding: '10px', textAlign: 'center' }}>
-                Bibliothèque Numérique Décentralisée
-            </div>
+            <div style={{minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f8f9fa'}}> 
+           
 
             <main style={{flexGrow: 1}}>
                 <Routes>
