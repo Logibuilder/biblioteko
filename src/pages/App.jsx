@@ -2,6 +2,9 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthContext } from '../hooks/AuthContext';
 
+
+//HomePage
+import HomePage from './HomePage';
 // Pages et Layouts
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
@@ -36,8 +39,9 @@ const App = () => {
 
             <main style={{flexGrow: 1}}>
                 <Routes>
-                    {/* Redirection racine */}
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+                    {/* 👇 2. MODIFICATION DE LA ROUTE RACINE */}
+                    <Route path="/" element={<HomePage />} />
                     
                     {/* Page de Login */}
                     <Route path="/login" element={<LoginPage />} />

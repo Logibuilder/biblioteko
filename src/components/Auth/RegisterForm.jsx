@@ -28,13 +28,13 @@ const RegisterForm = () => {
 
         const success = await register(formData.email, formData.password, formData.nom);
         if (success) {
-            // Le hook redirige
+            // Le hook gère la redirection
         }
     };
 
     return (
         <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
-            <div className="col-md-6 col-lg-5">
+            <div className="col-12 col-md-8 col-lg-6" style={{ maxWidth: '600px' }}>
                 <div className="text-center mb-4">
                     <h2 className="fw-bold text-dark">Rejoignez-nous</h2>
                     <p className="text-muted">Accédez à des milliers de ressources numériques.</p>
