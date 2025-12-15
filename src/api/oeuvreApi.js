@@ -86,6 +86,52 @@ export const analyserOeuvreIA = (oeuvreId) => {
     });
 };
 
+
+
+
+
+/**
+ * NOUVELLE FONCTION : Upload PDF avec conversion OCR automatique
+ */
+export const numeriserPDF = async (formData, token) => {
+    const response = await fetch(`${API_URL}/oeuvres/depot-pdf`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData // FormData contient : pdf, titre, auteur, soumisPar
+    });
+    return handleResponse(response);
+};
+
+
+
+/**
+ * NOUVELLE FONCTION : Convertir un PDF en Markdown (sans dépôt)
+ */
+export const convertirPDF = async (formData, token) => {
+    const response = await fetch(`${API_URL}/oeuvres/convertir-pdf`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData // FormData contient : pdf, titre, auteur
+    });
+    return handleResponse(response);
+};
+
+/**
+ * NOUVELLE FONCTION : Déposer un Markdown converti
+ */
+export const deposerMarkdown = async (data, token) => {
+    const response = await fetch(`${API_URL}/oeuvres/deposer-md`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify(data) // {titre, auteur, contenu_md, soumisPar}
+    });
+    return handleResponse(response);
+};
+
+
 // Simulation pour l'espace membre (pas encore d'API catalogue)
 export const fetchOeuvresDisponibles = () => Promise.resolve([]);
 export const fetchMesEmprunts = () => Promise.resolve([]);

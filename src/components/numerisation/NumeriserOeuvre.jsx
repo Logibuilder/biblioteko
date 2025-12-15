@@ -1,51 +1,145 @@
+// ============================================
+// FICHIER 4: Frontend - src/components/numerisation/NumeriserOeuvre.jsx (COMPLET)
+// ============================================
+
 import React, { useState, useEffect } from 'react';
-import { numeriserOeuvre, fetchMesNumerisations } from '../../api/oeuvreApi';
+import { convertirPDF, deposerMarkdown } from '../../api/oeuvreApi';
 import { useAuthContext } from '../../hooks/AuthContext';
 
 const NumeriserOeuvre = () => {
-    const { user } = useAuthContext();
-    const token = localStorage.getItem('token');
+    const { user, token } = useAuthContext();
 
+    // États du formulaire
     const [titre, setTitre] = useState('');
-    const [fichier, setFichier] = useState(null);
-    const [mesNumerisations, setMesNumerisations] = useState([]);
+    const [auteur, setAuteur] = useState('');
+    const [pdfFile, setPdfFile] = useState(null);
+    
+    // États de traitement
     const [isProcessing, setIsProcessing] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [message, setMessage] = useState('');
     const [error, setError] = useState(null);
+    
+    // État de conversion
+    const [documentConverti, setDocumentConverti] = useState(null);
+    
+    // Liste des conversions
+    const [mesConversions, setMesConversions] = useState([]);
 
-    useEffect(() => {
-        const loadList = async () => {
-            if (user) {
-                const data = await fetchMesNumerisations(user.email, token);
-                setMesNumerisations(data);
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.type !== 'application/pdf') {
+                setError("Seuls les fichiers PDF sont acceptés.");
+                setPdfFile(null);
+                return;
             }
-        };
-        loadList();
-    }, [user, token]);
+            if (file.size > 50 * 1024 * 1024) {
+                setError("Le fichier est trop volumineux (50MB maximum).");
+                setPdfFile(null);
+                return;
+            }
+            setPdfFile(file);
+            setError(null);
+            
+            if (!titre) {
+                const nomSansPdf = file.name.replace('.pdf', '').replace(/_/g, ' ');
+                setTitre(nomSansPdf);
+            }
+        }
+    };
 
-    const handleSubmit = async (e) => {
+    const handleConvertir = async (e) => {
         e.preventDefault();
-        if (!titre || !fichier) {
+        
+        if (!titre || !pdfFile) {
             setError("Veuillez fournir un titre et un fichier PDF.");
             return;
         }
+
         setIsProcessing(true);
         setError(null);
         setMessage('');
+        setDocumentConverti(null);
+        setUploadProgress(10);
 
         try {
             const formData = new FormData();
+            formData.append('pdf', pdfFile);
             formData.append('titre', titre);
-            formData.append('fichier', fichier);
-            formData.append('user', user.email);
+            formData.append('auteur', auteur || 'Auteur inconnu');
 
-            const result = await numeriserOeuvre(formData, token);
+            setUploadProgress(30);
+
+            // Appel API : CONVERSION SEULEMENT
+            const result = await convertirPDF(formData, token);
+
+            setUploadProgress(100);
+            setMessage(`✅ Conversion réussie ! (${result.taille_md} caractères extraits)`);
             
-            setMessage(result.message);
-            setMesNumerisations([...mesNumerisations, result.data]);
+            // Stockage du document converti en mémoire
+            setDocumentConverti({
+                titre: result.titre,
+                auteur: result.auteur,
+                contenu_md: result.contenu_md,
+                fichier_original: result.fichier_original,
+                date: new Date().toISOString()
+            });
+
+            // Ajout à l'historique local
+            setMesConversions(prev => [
+                {
+                    id: Date.now(),
+                    titre: result.titre,
+                    auteur: result.auteur,
+                    date: new Date().toISOString(),
+                    statut: 'CONVERTIE'
+                },
+                ...prev
+            ]);
+            
+        } catch (err) {
+            setError(err.message || "Erreur lors de la conversion.");
+        } finally {
+            setIsProcessing(false);
+            setTimeout(() => setUploadProgress(0), 2000);
+        }
+    };
+
+    const handleDeposer = async () => {
+        if (!documentConverti) return;
+
+        setIsProcessing(true);
+        setError(null);
+
+        try {
+            const data = {
+                titre: documentConverti.titre,
+                auteur: documentConverti.auteur,
+                contenu_md: documentConverti.contenu_md,
+                soumisPar: user.email
+            };
+
+            const result = await deposerMarkdown(data, token);
+            
+            setMessage(`✅ ${result.message}`);
+            
+            // Mise à jour du statut
+            setMesConversions(prev => 
+                prev.map(conv => 
+                    conv.titre === documentConverti.titre 
+                        ? { ...conv, statut: 'DEPOSEE' } 
+                        : conv
+                )
+            );
+            
+            // Reset
+            setDocumentConverti(null);
             setTitre('');
-            setFichier(null);
-            document.getElementById('fileInputNumerisation').value = ""; 
+            setAuteur('');
+            setPdfFile(null);
+            document.getElementById('fileInputPDF').value = "";
+            
         } catch (err) {
             setError(err.message);
         } finally {
@@ -53,35 +147,119 @@ const NumeriserOeuvre = () => {
         }
     };
 
-    const downloadMarkdown = (numerisation) => {
-        const element = document.createElement("a");
-        const file = new Blob([numerisation.contenu], {type: 'text/markdown'});
-        element.href = URL.createObjectURL(file);
-        element.download = `${numerisation.titre.replace(/\s+/g, '_')}.md`;
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
+    const handleTelecharger = () => {
+        if (!documentConverti) return;
+
+        const blob = new Blob([documentConverti.contenu_md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${documentConverti.titre.replace(/\s+/g, '_')}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        setMessage('📥 Fichier téléchargé avec succès !');
     };
 
     return (
         <div className="container-fluid">
-            <div className="row g-4 justify-content-center">
+            <div className="mb-4">
+                <h3 className="fw-bold text-dark mb-1">
+                    <i className="bi bi-magic me-2 text-primary"></i>
+                    Numérisation OCR Automatique
+                </h3>
+                <p className="text-muted">Convertissez vos PDF en Markdown, puis déposez-les ou téléchargez-les.</p>
+            </div>
+
+            <div className="row g-4">
                 
-                {/* ZONE FORMULAIRE */}
-                <div className="col-md-5">
-                    <div className="card shadow-lg border-0 h-100">
+                {/* COLONNE GAUCHE : FORMULAIRE */}
+                <div className="col-lg-5">
+                    <div className="card shadow-sm border-0 h-100">
                         <div className="card-header bg-primary text-white py-3">
-                            <h5 className="mb-0"><i className="bi bi-magic me-2"></i>Numérisation OCR</h5>
+                            <h5 className="mb-0">
+                                <i className="bi bi-file-pdf me-2"></i>
+                                Étape 1 : Conversion
+                            </h5>
                         </div>
                         <div className="card-body p-4">
-                            <p className="text-muted small mb-4">
-                                Transformez vos anciens documents PDF en texte éditable (Markdown) grâce à notre moteur IA.
-                            </p>
+                            
+                            {error && (
+                                <div className="alert alert-danger d-flex align-items-center small mb-3">
+                                    <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                                    {error}
+                                </div>
+                            )}
+                            {message && (
+                                <div className="alert alert-success d-flex align-items-center small mb-3">
+                                    <i className="bi bi-check-circle-fill me-2"></i>
+                                    {message}
+                                </div>
+                            )}
 
-                            {error && <div className="alert alert-danger small">{error}</div>}
-                            {message && <div className="alert alert-success small">{message}</div>}
+                            {isProcessing && uploadProgress > 0 && (
+                                <div className="mb-3">
+                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                        <small className="text-muted fw-bold">Traitement en cours...</small>
+                                        <small className="text-primary fw-bold">{uploadProgress}%</small>
+                                    </div>
+                                    <div className="progress" style={{height: '8px'}}>
+                                        <div 
+                                            className="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                                            style={{width: `${uploadProgress}%`}}
+                                        ></div>
+                                    </div>
+                                </div>
+                            )}
 
-                            <form onSubmit={handleSubmit}>
+                            <form onSubmit={handleConvertir}>
+                                
+                                <div className="mb-4">
+                                    <label className="form-label small fw-bold text-muted">
+                                        <i className="bi bi-file-earmark-pdf me-1 text-danger"></i>
+                                        Fichier PDF *
+                                    </label>
+                                    <div className="border rounded-3 p-3 bg-light text-center">
+                                        <input 
+                                            id="fileInputPDF"
+                                            type="file" 
+                                            className="form-control form-control-lg" 
+                                            accept=".pdf"
+                                            onChange={handleFileChange}
+                                            required 
+                                            disabled={isProcessing}
+                                            style={{display: pdfFile ? 'none' : 'block'}}
+                                        />
+                                        
+                                        {pdfFile && (
+                                            <div className="d-flex align-items-center justify-content-between">
+                                                <div className="d-flex align-items-center">
+                                                    <i className="bi bi-file-earmark-pdf fs-1 text-danger me-3"></i>
+                                                    <div className="text-start">
+                                                        <strong className="d-block text-dark">{pdfFile.name}</strong>
+                                                        <small className="text-muted">
+                                                            {(pdfFile.size / 1024 / 1024).toFixed(2)} MB
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                <button 
+                                                    type="button"
+                                                    className="btn btn-sm btn-outline-danger rounded-circle"
+                                                    onClick={() => {
+                                                        setPdfFile(null);
+                                                        document.getElementById('fileInputPDF').value = "";
+                                                    }}
+                                                    disabled={isProcessing}
+                                                >
+                                                    <i className="bi bi-x"></i>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
                                 <div className="form-floating mb-3">
                                     <input 
                                         type="text" 
@@ -93,20 +271,20 @@ const NumeriserOeuvre = () => {
                                         required 
                                         disabled={isProcessing}
                                     />
-                                    <label htmlFor="titreDoc">Titre du document</label>
+                                    <label htmlFor="titreDoc">Titre *</label>
                                 </div>
 
-                                <div className="mb-4">
-                                    <label className="form-label small fw-bold text-muted">Fichier source (PDF)</label>
+                                <div className="form-floating mb-4">
                                     <input 
-                                        id="fileInputNumerisation"
-                                        type="file" 
-                                        className="form-control form-control-lg" 
-                                        accept=".pdf"
-                                        onChange={(e) => setFichier(e.target.files[0])}
-                                        required 
+                                        type="text" 
+                                        className="form-control" 
+                                        id="auteurDoc"
+                                        placeholder="Auteur"
+                                        value={auteur}
+                                        onChange={(e) => setAuteur(e.target.value)}
                                         disabled={isProcessing}
                                     />
+                                    <label htmlFor="auteurDoc">Auteur</label>
                                 </div>
 
                                 <button 
@@ -117,55 +295,125 @@ const NumeriserOeuvre = () => {
                                     {isProcessing ? (
                                         <>
                                             <span className="spinner-border spinner-border-sm me-2"></span>
-                                            Analyse IA en cours...
+                                            Conversion en cours...
                                         </>
                                     ) : (
                                         <>
-                                            <i className="bi bi-cloud-upload me-2"></i>Lancer la numérisation
+                                            <i className="bi bi-lightning-charge-fill me-2"></i>
+                                            Convertir en Markdown
                                         </>
                                     )}
                                 </button>
                             </form>
                         </div>
                     </div>
+
+                    {/* PANNEAU ACTIONS POST-CONVERSION */}
+                    {documentConverti && (
+                        <div className="card shadow-sm border-success border-2 mt-3">
+                            <div className="card-header bg-success text-white py-3">
+                                <h5 className="mb-0">
+                                    <i className="bi bi-check-circle me-2"></i>
+                                    Étape 2 : Action
+                                </h5>
+                            </div>
+                            <div className="card-body p-4">
+                                <p className="text-muted small mb-3">
+                                    Document converti avec succès. Que souhaitez-vous faire ?
+                                </p>
+                                
+                                <div className="d-grid gap-2">
+                                    <button 
+                                        className="btn btn-success py-3 fw-bold"
+                                        onClick={handleDeposer}
+                                        disabled={isProcessing}
+                                    >
+                                        <i className="bi bi-cloud-upload me-2"></i>
+                                        Déposer dans la bibliothèque
+                                    </button>
+                                    
+                                    <button 
+                                        className="btn btn-outline-primary py-3"
+                                        onClick={handleTelecharger}
+                                    >
+                                        <i className="bi bi-download me-2"></i>
+                                        Télécharger le fichier .md
+                                    </button>
+                                </div>
+
+                                <div className="mt-3 p-3 bg-light rounded-3">
+                                    <small className="text-muted">
+                                        <strong>Aperçu :</strong><br/>
+                                        {documentConverti.contenu_md.substring(0, 200)}...
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                {/* ZONE RÉSULTATS */}
-                <div className="col-md-7">
+                {/* COLONNE DROITE : HISTORIQUE */}
+                <div className="col-lg-7">
                     <div className="card shadow-sm border-0 h-100">
-                        <div className="card-header bg-white py-3">
-                            <h5 className="mb-0 text-dark fw-bold">📂 Mes Documents Numérisés</h5>
+                        <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 className="mb-0 text-dark fw-bold">
+                                <i className="bi bi-clock-history me-2"></i>
+                                Historique des Conversions
+                            </h5>
+                            <span className="badge bg-primary bg-opacity-10 text-primary rounded-pill">
+                                {mesConversions.length}
+                            </span>
                         </div>
                         <div className="card-body p-0">
-                            {mesNumerisations.length === 0 ? (
+                            {mesConversions.length === 0 ? (
                                 <div className="text-center py-5 text-muted">
-                                    <i className="bi bi-file-earmark-text fs-1 opacity-25 d-block mb-2"></i>
-                                    Aucun document traité pour l'instant.
+                                    <i className="bi bi-inbox fs-1 opacity-25 d-block mb-3"></i>
+                                    <p className="mb-0">Aucune conversion effectuée.</p>
                                 </div>
                             ) : (
-                                <div className="list-group list-group-flush">
-                                    {mesNumerisations.map((num) => (
-                                        <div key={num.id} className="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
-                                            <div className="d-flex align-items-center">
-                                                <div className="bg-light rounded p-2 text-dark me-3">
-                                                    <i className="bi bi-markdown-fill fs-4"></i>
-                                                </div>
-                                                <div>
-                                                    <strong className="d-block text-dark">{num.titre}</strong>
-                                                    <small className="text-muted d-flex align-items-center">
-                                                        <i className="bi bi-calendar3 me-1"></i>
-                                                        {new Date(num.date).toLocaleDateString()}
-                                                    </small>
-                                                </div>
-                                            </div>
-                                            <button 
-                                                className="btn btn-outline-primary btn-sm rounded-pill px-3"
-                                                onClick={() => downloadMarkdown(num)}
-                                            >
-                                                <i className="bi bi-download me-2"></i>Markdown
-                                            </button>
-                                        </div>
-                                    ))}
+                                <div className="table-responsive">
+                                    <table className="table table-hover align-middle mb-0">
+                                        <thead className="bg-light">
+                                            <tr>
+                                                <th className="ps-4 py-3">Document</th>
+                                                <th className="py-3">Date</th>
+                                                <th className="py-3 text-center">Statut</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {mesConversions.map((conv) => (
+                                                <tr key={conv.id}>
+                                                    <td className="ps-4">
+                                                        <div className="d-flex align-items-center">
+                                                            <div className={`${conv.statut === 'DEPOSEE' ? 'bg-success' : 'bg-warning'} bg-opacity-10 text-${conv.statut === 'DEPOSEE' ? 'success' : 'warning'} rounded p-2 me-3`}>
+                                                                <i className="bi bi-markdown-fill fs-5"></i>
+                                                            </div>
+                                                            <div>
+                                                                <strong className="d-block text-dark">{conv.titre}</strong>
+                                                                <small className="text-muted">{conv.auteur}</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="text-muted small">
+                                                        {new Date(conv.date).toLocaleDateString('fr-FR')}
+                                                    </td>
+                                                    <td className="text-center">
+                                                        {conv.statut === 'DEPOSEE' ? (
+                                                            <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
+                                                                <i className="bi bi-check-circle me-1"></i>
+                                                                Déposée
+                                                            </span>
+                                                        ) : (
+                                                            <span className="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-2 rounded-pill">
+                                                                <i className="bi bi-hourglass-split me-1"></i>
+                                                                Convertie
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             )}
                         </div>
