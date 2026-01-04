@@ -107,14 +107,31 @@ export const numeriserPDF = async (formData, token) => {
 /**
  * NOUVELLE FONCTION : Convertir un PDF en Markdown (sans dépôt)
  */
+// export const convertirPDF = async (formData, token) => {
+//     const response = await fetch(`${API_URL}/oeuvres/convertir-pdf`, {
+//         method: 'POST',
+//         headers: { 'Authorization': `Bearer ${token}` },
+//         body: formData // FormData contient : pdf, titre, auteur
+//     });
+//     return handleResponse(response);
+// };
+
 export const convertirPDF = async (formData, token) => {
     const response = await fetch(`${API_URL}/oeuvres/convertir-pdf`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
-        body: formData // FormData contient : pdf, titre, auteur
+        body: formData
     });
-    return handleResponse(response);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || "Erreur serveur lors de la conversion PDF");
+    }
+
+    return data.contenu_md; // ✅ On ne renvoie que le Markdown
 };
+
 
 /**
  * NOUVELLE FONCTION : Déposer un Markdown converti
