@@ -51,8 +51,8 @@
       "fichier_nom": "the_hangin.md",
       "dossier": "a_moderer",
       "soumis_par": "fares@biblio.fr",
-      "date_soumission": "2026-01-09T16:41:08.339821",
-      "etat": "SOUMISE",
+      "date_soumission": "2026-01-09T16:57:49.060244",
+      "etat": "EN_TRAITEMENT",
       "metadonnees": {}
     },
     {
@@ -79,5 +79,5 @@
     }
   ],
   "version": "1.0",
-  "derniere_maj": "2026-01-09T16:56:53.624624"
+  "derniere_maj": "2026-01-09T16:57:49.060852"
 }
