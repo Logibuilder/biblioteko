@@ -49,10 +49,10 @@
       "titre": "the hangin",
       "auteur": "fares",
       "fichier_nom": "the_hangin.md",
-      "dossier": "a_moderer",
+      "dossier": "fond_commun",
       "soumis_par": "fares@biblio.fr",
       "date_soumission": "2026-01-09T16:57:49.060244",
-      "etat": "EN_TRAITEMENT",
+      "etat": "VALIDEE",
       "metadonnees": {}
     },
     {
@@ -79,5 +79,5 @@
     }
   ],
   "version": "1.0",
-  "derniere_maj": "2026-01-09T16:57:49.060852"
+  "derniere_maj": "2026-01-09T16:58:01.531651"
 }
