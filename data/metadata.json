@@ -38,13 +38,13 @@
       "titre": "happy",
       "auteur": "fares",
       "fichier_nom": "happy.md",
-      "dossier": "a_moderer",
+      "dossier": "fond_commun",
       "soumis_par": "fares@biblio.fr",
       "date_soumission": "2026-01-09T16:09:34.084067",
-      "etat": "EN_TRAITEMENT",
+      "etat": "VALIDEE",
       "metadonnees": {}
     }
   ],
   "version": "1.0",
-  "derniere_maj": "2026-01-09T16:09:34.084676"
+  "derniere_maj": "2026-01-09T16:09:38.594829"
 }
