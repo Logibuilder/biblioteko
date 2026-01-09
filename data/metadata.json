@@ -65,8 +65,19 @@
       "date_soumission": "2026-01-09T16:55:33.363679",
       "etat": "SOUMISE",
       "metadonnees": {}
+    },
+    {
+      "id": "fares.md",
+      "titre": "fares",
+      "auteur": "fares",
+      "fichier_nom": "fares.md",
+      "dossier": "a_moderer",
+      "soumis_par": "fares@biblio.fr",
+      "date_soumission": "2026-01-09T16:56:53.623970",
+      "etat": "SOUMISE",
+      "metadonnees": {}
     }
   ],
   "version": "1.0",
-  "derniere_maj": "2026-01-09T16:55:33.364145"
+  "derniere_maj": "2026-01-09T16:56:53.624624"
 }
