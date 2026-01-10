@@ -4,8 +4,8 @@
   "nom_demandeur": "fares mouakei",
   "motivation": "sdfghjkljuytrezertyhgfrtgfdf",
   "date_demande": "2026-01-09T15:17:24.006416",
-  "date_reponse": null,
-  "statut": "en_attente",
-  "traite_par_email": null,
-  "motif_refus": null
+  "date_reponse": "2026-01-11T00:42:22.434361",
+  "statut": "refusee",
+  "traite_par_email": "assane.kane@biblioteko.fr",
+  "motif_refus": "sdfgtyhujklkjhgfrd"
 }
