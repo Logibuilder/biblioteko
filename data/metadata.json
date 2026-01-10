@@ -87,8 +87,19 @@
       "date_soumission": "2026-01-10T20:18:02.431961",
       "etat": "SOUMISE",
       "metadonnees": {}
+    },
+    {
+      "id": "cv_Assane_KANE.pdf.md",
+      "titre": "cv_Assane_KANE.pdf",
+      "auteur": "Inconnu",
+      "fichier_nom": "cv_Assane_KANE.pdf.md",
+      "dossier": "a_moderer",
+      "soumis_par": "maguette.kane@biblioteko.fr",
+      "date_soumission": "2026-01-10T20:27:38.933416",
+      "etat": "SOUMISE",
+      "metadonnees": {}
     }
   ],
   "version": "1.0",
-  "derniere_maj": "2026-01-10T20:18:02.432092"
+  "derniere_maj": "2026-01-10T20:27:38.933667"
 }
