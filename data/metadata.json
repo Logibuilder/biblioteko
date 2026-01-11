@@ -84,8 +84,8 @@
       "fichier_nom": "sertyuj.md",
       "dossier": "a_moderer",
       "soumis_par": "maguette.kane@biblioteko.fr",
-      "date_soumission": "2026-01-10T20:18:02.431961",
-      "etat": "SOUMISE",
+      "date_soumission": "2026-01-11T01:02:06.652807",
+      "etat": "EN_TRAITEMENT",
       "metadonnees": {}
     },
     {
@@ -112,5 +112,5 @@
     }
   ],
   "version": "1.0",
-  "derniere_maj": "2026-01-10T20:51:15.123845"
+  "derniere_maj": "2026-01-11T01:02:06.653278"
 }
