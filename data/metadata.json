@@ -82,10 +82,10 @@
       "titre": "sertyuj",
       "auteur": "sedfgh",
       "fichier_nom": "sertyuj.md",
-      "dossier": "a_moderer",
+      "dossier": "fond_commun",
       "soumis_par": "maguette.kane@biblioteko.fr",
       "date_soumission": "2026-01-11T01:02:06.652807",
-      "etat": "EN_TRAITEMENT",
+      "etat": "VALIDEE",
       "metadonnees": {}
     },
     {
@@ -112,5 +112,5 @@
     }
   ],
   "version": "1.0",
-  "derniere_maj": "2026-01-11T01:02:06.653278"
+  "derniere_maj": "2026-01-11T01:02:09.772633"
 }
