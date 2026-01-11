@@ -93,10 +93,10 @@
       "titre": "cv_Assane_KANE.pdf",
       "auteur": "Inconnu",
       "fichier_nom": "cv_Assane_KANE.pdf.md",
-      "dossier": "a_moderer",
+      "dossier": "fond_commun",
       "soumis_par": "maguette.kane@biblioteko.fr",
       "date_soumission": "2026-01-11T01:02:12.251215",
-      "etat": "EN_TRAITEMENT",
+      "etat": "VALIDEE",
       "metadonnees": {}
     },
     {
@@ -112,5 +112,5 @@
     }
   ],
   "version": "1.0",
-  "derniere_maj": "2026-01-11T01:02:12.251558"
+  "derniere_maj": "2026-01-11T01:02:15.483434"
 }
