@@ -104,13 +104,13 @@
       "titre": "sdfgh",
       "auteur": "sdfghj,",
       "fichier_nom": "sdfgh.md",
-      "dossier": "a_moderer",
+      "dossier": "fond_commun",
       "soumis_par": "maguette.kane@biblioteko.fr",
       "date_soumission": "2026-01-11T01:02:17.965505",
-      "etat": "EN_TRAITEMENT",
+      "etat": "VALIDEE",
       "metadonnees": {}
     }
   ],
   "version": "1.0",
-  "derniere_maj": "2026-01-11T01:02:17.965868"
+  "derniere_maj": "2026-01-11T01:02:20.465712"
 }
